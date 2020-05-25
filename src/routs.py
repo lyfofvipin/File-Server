@@ -1,20 +1,22 @@
 import secrets, os
-from flask import render_template, url_for, flash, redirect, request
+from flask import render_template, url_for, flash, redirect, request, send_from_directory
 from src.forms import RegistrationForm, LoginForm, UpdateAccount
 from src.models import User
-from src import app, db, bcrypt
+from src import app, db, bcrypt, result_base_dir_path
 from flask_login import login_user, current_user, logout_user, login_required
+from src.modules import list_dirs
 
 
 @app.route("/")
 @app.route("/home")
 def home():
-    return render_template("home.html", title="File Server | Home")
+    folder_list = list_dirs(result_base_dir_path)
+    return render_template("home.html", title="File Server | Home", folder_list=folder_list if folder_list else [])
 
 @app.route("/about")
 def about():
     return render_template("about.html", title="File Server | About")
-    
+
 @app.route("/register", methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
@@ -75,6 +77,15 @@ def account():
         form.email.data = current_user.email
     image_file = url_for('static', filename='profile_pic/' + current_user.image)
     return render_template("account.html", title="File Server | ACCOUNT", image_file=image_file, form=form)
+
+@app.route("/home/<path:next_url>")
+def file_and_folders(next_url):
+    path = os.path.join(result_base_dir_path, next_url)
+    if os.path.isdir(path):
+        return render_template("folders.html", folder_content=os.listdir(path), next_url=next_url, join=os.path.join)
+    else:
+        folder_path, file_path = "/".join(path.split("/")[:-1]), path.split('/')[-1]
+        return send_from_directory(folder_path, file_path, as_attachment=False)
 
 @app.errorhandler(404)
 def error_404(error):

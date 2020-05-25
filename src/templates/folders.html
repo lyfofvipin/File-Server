@@ -4,8 +4,8 @@
         <div class="media-body">
         <div class="article-metadata">
         </div>
-        {% for folder in folder_list %}
-        <h2><a class="article-title" href="/home/{{ folder }}">{{ folder.capitalize() }}</a></h2>
+        {% for dir_file in folder_content %}
+        <h3><a class="article-title" href="{{url_for('file_and_folders', next_url= join(next_url,dir_file))}}">{{ dir_file.capitalize() }}</a></h3>
         <p class="article-content">Folder date</p>
         {% endfor %}
         </div>
