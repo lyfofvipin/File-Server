@@ -40,8 +40,10 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
-            next_page = request.args.get('next')[1:] if request.args.get('next') else 'home'
-            return redirect(url_for(next_page))
+            if request.args.get('next'):
+                return redirect(url_for('file_and_folders', next_url=request.args.get('next')[5:] ))
+            else:
+                return redirect(url_for('home'))
         else:
             flash("Login Unsuccessfull, Please check Username or Password", "danger")
     return render_template("login.html", title="File Server | LOGIN", form = form)
@@ -79,6 +81,7 @@ def account():
     return render_template("account.html", title="File Server | ACCOUNT", image_file=image_file, form=form)
 
 @app.route("/home/<path:next_url>")
+@login_required
 def file_and_folders(next_url):
     path = os.path.join(result_base_dir_path, next_url)
     if os.path.isdir(path):
