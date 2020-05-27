@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content-section">
+    <p>Upload file page</p>
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+        <legend class="border-bottom mb-4">Upload File</legend>
+        <!-- <select class="custom-select custom-select-sm mb-3">
+            <option selected>Product</option>
+            <option value="volvo">RHOSP</option>
+            <option value="fiat">CCSP</option>
+            <option value="audi">Hardware</option>
+        </select> -->
+        <div class="form-group">
+            <div class="custom-file">
+                <input type="file" id="file_to_upload" name="file_to_upload">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </form>    
+</div>
+{% endblock %}

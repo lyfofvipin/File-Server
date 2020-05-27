@@ -4,7 +4,7 @@ from src.forms import RegistrationForm, LoginForm, UpdateAccount
 from src.models import User
 from src import app, db, bcrypt, result_base_dir_path
 from flask_login import login_user, current_user, logout_user, login_required
-from src.modules import list_dirs
+from src.modules import list_dirs, file_validater
 
 
 @app.route("/")
@@ -89,6 +89,20 @@ def file_and_folders(next_url):
     else:
         folder_path, file_path = "/".join(path.split("/")[:-1]), path.split('/')[-1]
         return send_from_directory(folder_path, file_path, as_attachment=False)
+
+@app.route("/upload", methods=["GET", "POST"])
+def upload_file():
+    if request.method == "POST":
+        if request.files:
+            file = request.files['file_to_upload']
+            if file_validater(file.filename):
+                flash(f'File Uploaded successfully ', 'success')
+                return redirect(url_for('home'))
+            else:
+                flash(f'Invalid file', 'danger')
+                return redirect(url_for('upload_file'))
+            # file.save(os.path.join(result_base_dir_path, file.filename))
+    return render_template("upload.html", title="File Server | Upload")
 
 @app.errorhandler(404)
 def error_404(error):
