@@ -11,7 +11,8 @@ from src.apis import home_page_api
 @app.route("/home")
 def home():
     folder_list = list_dirs(result_base_dir_path)
-    return render_template("home.html", title="File Server | Home", folder_list=folder_list if folder_list else [])
+    folder_list = [(folder, time.ctime(os.path.getmtime(os.path.join(result_base_dir_path, folder)))) for folder in folder_list]
+    return render_template("home.html", title="File Server | Home", folder_list=folder_list if folder_list else [], dates=os.path.getmtime)
 
 @app.route("/about")
 def about():
@@ -88,7 +89,8 @@ def account():
 def file_and_folders(next_url):
     path = os.path.join(result_base_dir_path, next_url)
     if os.path.isdir(path):
-        return render_template("folders.html", folder_content=os.listdir(path), next_url=next_url, join=os.path.join)
+        folder_content = [(folder, time.ctime(os.path.getmtime(os.path.join(path, folder)))) for folder in os.listdir(path)]
+        return render_template("folders.html", folder_content=folder_content, next_url=next_url, join=os.path.join)
     else:
         folder_path, file_path = "/".join(path.split("/")[:-1]), path.split('/')[-1]
         return send_from_directory(folder_path, file_path, as_attachment=True)
@@ -104,14 +106,14 @@ def upload_file():
                 flash(f'Select a File to Upload.', 'danger')
                 return redirect(url_for('upload_file'))
             if file_validater(file_name):
-                if product == "rhosp":
-                    file_path = os.path.join(result_base_dir_path, product, version, rhos, arc, rhel, file_name)
-                else:
-                    file_path = os.path.join(result_base_dir_path, product, version, arc, rhel, file_name)
-                if os.path.exists(os.path.join(result_base_dir_path, product, version, arc, rhel)):
-                    request.files['file_to_upload'].save(file_path)
-                    flash(f'File Uploaded successfully ', 'success')
-                    return redirect(url_for('home'))
+                file_path = os.path.join(result_base_dir_path, product, version, rhos if product == "rhosp" else "", arc, rhel, file_name)
+                if os.path.exists(os.path.join(result_base_dir_path, product, version, rhos if product == "rhosp" else "", arc, rhel)):
+                    if os.path.exists(file_path):
+                        flash(f'This file is allready on the server.', 'danger')
+                    else:
+                        request.files['file_to_upload'].save(file_path)
+                        flash(f'File Uploaded successfully ', 'success')
+                        return redirect(url_for('home'))
                 else:
                     flash(f'Looks like you have selected wrong files. Please try again.', 'danger')
             else:

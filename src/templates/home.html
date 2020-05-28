@@ -5,8 +5,8 @@
         <div class="article-metadata">
         </div>
         {% for folder in folder_list %}
-        <h2><a class="article-title" href="/home/{{ folder }}">{{ folder.capitalize() }}</a></h2>
-        <p class="article-content">Folder date</p>
+        <h2><a class="article-title" href="/home/{{ folder[0] }}">{{ folder[0].capitalize() }}</a></h2>
+        <p class="article-content">{{ folder[1] }}</p>
         {% endfor %}
         </div>
     </article>
