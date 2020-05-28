@@ -95,27 +95,30 @@ def file_and_folders(next_url):
 @app.route("/upload", methods=["GET", "POST"])
 @login_required
 def upload_file():
-    if request.method == "POST":
-        product, arc, version, rhel, rhos = request.form['product'], request.form['arc'], request.form['version'], request.form['rhel'], request.form['rhos']
-        file_name = request.files['file_to_upload'].filename
-        if not file_name:
-            flash(f'Select a File to Upload.', 'danger')
-            return redirect(url_for('upload_file'))
-        if file_validater(file_name):
-            if product == "rhosp":
-                file_path = os.path.join(result_base_dir_path, product, version, rhos, arc, rhel, file_name)
+    if current_user.role:
+        if request.method == "POST":
+            product, arc, version, rhel, rhos = request.form['product'], request.form['arc'], request.form['version'], request.form['rhel'], request.form['rhos']
+            file_name = request.files['file_to_upload'].filename
+            if not file_name:
+                flash(f'Select a File to Upload.', 'danger')
+                return redirect(url_for('upload_file'))
+            if file_validater(file_name):
+                if product == "rhosp":
+                    file_path = os.path.join(result_base_dir_path, product, version, rhos, arc, rhel, file_name)
+                else:
+                    file_path = os.path.join(result_base_dir_path, product, version, arc, rhel, file_name)
+                if os.path.exists(os.path.join(result_base_dir_path, product, version, arc, rhel)):
+                    request.files['file_to_upload'].save(file_path)
+                    flash(f'File Uploaded successfully ', 'success')
+                    return redirect(url_for('home'))
+                else:
+                    flash(f'Looks like you have selected wrong files. Please try again.', 'danger')
             else:
-                file_path = os.path.join(result_base_dir_path, product, version, arc, rhel, file_name)
-            if os.path.exists(os.path.join(result_base_dir_path, product, version, arc, rhel)):
-                request.files['file_to_upload'].save(file_path)
-                flash(f'File Uploaded successfully ', 'success')
-                return redirect(url_for('home'))
-            else:
-                flash(f'Looks like you have selected wrong files. Please try again.', 'danger')
-        else:
-            flash(f'Invalid file', 'danger')
-            return redirect(url_for('upload_file'))
-    return render_template("upload.html", title="File Server | Upload", Products=Products, Arcs=Arcs, Product_Versions=Product_Versions, RHELS=RHELS, RHOS=RHOS)
+                flash(f'Invalid file', 'danger')
+                return redirect(url_for('upload_file'))
+        return render_template("upload.html", title="File Server | Upload", Products=Products, Arcs=Arcs, Product_Versions=Product_Versions, RHELS=RHELS, RHOS=RHOS)
+    else:
+        return render_template("403.html", title="File Server | ERROR"), 403
 
 @app.errorhandler(404)
 def error_404(error):

@@ -36,7 +36,9 @@
                     {% if current_user.is_authenticated %}
                     <a class="nav-item nav-link" href="/account">Account</a>
                     <a class="nav-item nav-link" href="/logout">Log Out</a>
-                    <a class="nav-item nav-link" href="/upload">Upload</a>
+                    {% if current_user.role %}
+                      <a class="nav-item nav-link" href="/upload">Upload</a>
+                    {% endif %}
                     {% else %}
                       <a class="nav-item nav-link" href="/login">Login</a>
                       <a class="nav-item nav-link" href="/register">Register</a>
