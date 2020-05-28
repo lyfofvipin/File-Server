@@ -6,7 +6,6 @@ from src import app, db, bcrypt, result_base_dir_path, Products, Arcs, Product_V
 from flask_login import login_user, current_user, logout_user, login_required
 from src.modules import list_dirs, file_validater
 
-
 @app.route("/")
 @app.route("/home")
 def home():
@@ -41,7 +40,10 @@ def login():
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
             if request.args.get('next'):
-                return redirect(url_for('file_and_folders', next_url=request.args.get('next')[5:] ))
+                if "home" in request.args.get('next'):
+                    return redirect(url_for('file_and_folders', next_url=request.args.get('next').replace("/home", "") ))
+                else:
+                    return redirect(url_for('upload_file'))
             else:
                 return redirect(url_for('home'))
         else:
@@ -88,9 +90,10 @@ def file_and_folders(next_url):
         return render_template("folders.html", folder_content=os.listdir(path), next_url=next_url, join=os.path.join)
     else:
         folder_path, file_path = "/".join(path.split("/")[:-1]), path.split('/')[-1]
-        return send_from_directory(folder_path, file_path, as_attachment=False)
+        return send_from_directory(folder_path, file_path, as_attachment=True)
 
 @app.route("/upload", methods=["GET", "POST"])
+@login_required
 def upload_file():
     if request.method == "POST":
         product, arc, version, rhel, rhos = request.form['product'], request.form['arc'], request.form['version'], request.form['rhel'], request.form['rhos']
