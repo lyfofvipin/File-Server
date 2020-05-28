@@ -2,14 +2,33 @@
 {% block content %}
 <div class="content-section">
     <p>Upload file page</p>
-    <form action="/upload" method="POST" enctype="multipart/form-data">
+    <form action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data">
         <legend class="border-bottom mb-4">Upload File</legend>
-        <!-- <select class="custom-select custom-select-sm mb-3">
-            <option selected>Product</option>
-            <option value="volvo">RHOSP</option>
-            <option value="fiat">CCSP</option>
-            <option value="audi">Hardware</option>
-        </select> -->
+        <select class="custom-select custom-select-sm mb-3" id="product" name="product">
+            {% for product in Products %}
+                <option name="{{ product }}" value="{{ product }}">{{ product.capitalize() }}</option>
+            {% endfor %}
+        </select>
+        <select class="custom-select custom-select-sm mb-3" id="rhos" name="rhos">
+            {% for rhos in RHOS %}
+                <option name="{{ rhos }}" value="{{ rhos }}">{{ rhos.capitalize() }}</option>
+            {% endfor %}
+        </select>
+        <select class="custom-select custom-select-sm mb-3" id="rhel" name="rhel">
+            {% for rhel in RHELS %}
+                <option name="{{ rhel }}" value="{{ rhel }}">{{ rhel.capitalize() }}</option>
+            {% endfor %}
+        </select>
+        <select class="custom-select custom-select-sm mb-3" id="arc" name="arc">
+            {% for arc in Arcs %}
+                <option name="{{ arc }}" value="{{ arc }}">{{ arc.capitalize() }}</option>
+            {% endfor %}
+        </select>
+        <select class="custom-select custom-select-sm mb-3" id="version" name="version">
+            {% for version in Product_Versions %}
+                <option name="{{ version }}" value="{{ version }}">{{ version }}</option>
+            {% endfor %}
+        </select>
         <div class="form-group">
             <div class="custom-file">
                 <input type="file" id="file_to_upload" name="file_to_upload">

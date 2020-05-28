@@ -1,8 +1,8 @@
-import secrets, os
+import secrets, os, time
 from flask import render_template, url_for, flash, redirect, request, send_from_directory
 from src.forms import RegistrationForm, LoginForm, UpdateAccount
 from src.models import User
-from src import app, db, bcrypt, result_base_dir_path
+from src import app, db, bcrypt, result_base_dir_path, Products, Arcs, Product_Versions, RHELS, RHOS
 from flask_login import login_user, current_user, logout_user, login_required
 from src.modules import list_dirs, file_validater
 
@@ -93,16 +93,26 @@ def file_and_folders(next_url):
 @app.route("/upload", methods=["GET", "POST"])
 def upload_file():
     if request.method == "POST":
-        if request.files:
-            file = request.files['file_to_upload']
-            if file_validater(file.filename):
+        product, arc, version, rhel, rhos = request.form['product'], request.form['arc'], request.form['version'], request.form['rhel'], request.form['rhos']
+        file_name = request.files['file_to_upload'].filename
+        if not file_name:
+            flash(f'Select a File to Upload.', 'danger')
+            return redirect(url_for('upload_file'))
+        if file_validater(file_name):
+            if product == "rhosp":
+                file_path = os.path.join(result_base_dir_path, product, version, rhos, arc, rhel, file_name)
+            else:
+                file_path = os.path.join(result_base_dir_path, product, version, arc, rhel, file_name)
+            if os.path.exists(os.path.join(result_base_dir_path, product, version, arc, rhel)):
+                request.files['file_to_upload'].save(file_path)
                 flash(f'File Uploaded successfully ', 'success')
                 return redirect(url_for('home'))
             else:
-                flash(f'Invalid file', 'danger')
-                return redirect(url_for('upload_file'))
-            # file.save(os.path.join(result_base_dir_path, file.filename))
-    return render_template("upload.html", title="File Server | Upload")
+                flash(f'Looks like you have selected wrong files. Please try again.', 'danger')
+        else:
+            flash(f'Invalid file', 'danger')
+            return redirect(url_for('upload_file'))
+    return render_template("upload.html", title="File Server | Upload", Products=Products, Arcs=Arcs, Product_Versions=Product_Versions, RHELS=RHELS, RHOS=RHOS)
 
 @app.errorhandler(404)
 def error_404(error):
