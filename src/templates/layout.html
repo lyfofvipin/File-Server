@@ -52,11 +52,9 @@
               <div class="col-md-8">
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
-                        {% for category, message in messages  %}
-                            <div class="alert alert-{{ category }}">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
+                      <div class="alert alert-{{ messages[0][0] }}">
+                          {{ messages[0][1] }}
+                      </div>
                     {% endif %}
                 {% endwith %}
                 {% block content %}{% endblock %}
