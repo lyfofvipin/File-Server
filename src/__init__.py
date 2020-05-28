@@ -31,7 +31,7 @@ config_dir = {
             'ppc64le': ["RHEL-8"]
         }
     },
-    "Hardware": {
+    "hardware": {
         "": {
             'x86_64': ["RHEL-6", "RHEL-7", "RHEL-8"],
             'aarch64': ["RHEL-6", "RHEL-7", "RHEL-8"],
