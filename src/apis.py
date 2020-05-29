@@ -16,4 +16,4 @@ def download_api(next_url):
         folder_path, file_path = "/".join(path.split("/")[:-1]), path.split('/')[-1]
         return send_from_directory(folder_path, file_path, as_attachment=True)
     else:
-        return jsonify({"message": "Looks like API URL is not correct. Check and try again"})
+        return jsonify({"message": "Looks like API URL is not correct. Check and try again"}), 404
