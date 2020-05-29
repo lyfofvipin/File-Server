@@ -5,7 +5,7 @@ from src.models import User
 from src import app, db, bcrypt, result_base_dir_path, Products, Arcs, Product_Versions, RHELS, RHOS
 from flask_login import login_user, current_user, logout_user, login_required
 from src.modules import list_dirs, file_validater
-from src.apis import home_page_api
+from src.apis import home_page_api, download_api
 
 @app.route("/")
 @app.route("/home")
@@ -138,3 +138,7 @@ def error_500(error):
 @app.route("/api")
 def home_api():
     return home_page_api()
+
+@app.route("/api/<path:next_url>")
+def download_file_api(next_url):
+    return download_api(next_url)
