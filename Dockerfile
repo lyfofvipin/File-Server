@@ -1,6 +1,5 @@
 FROM fedora:latest
-RUN yum update -y && yum install -y python-pip git && git clone https://github.com/vipin3699/File-Server.git
-RUN pip install -r File-Server/requirements.txt
+MAINTANER Vipin Kumar "kumarvipinyadav369@gmail.com"
+RUN yum install -y python-pip git
 EXPOSE 5000
-ENTRYPOINT ["python3"]
-CMD ["File-Server/run.py"]
+ENTRYPOINT ["sh", "File-Server/install.sh"]
