@@ -1,4 +1,3 @@
-bash -x
 pip install virtualenv
 git clone https://github.com/vipin3699/File-Server.git
 pip install -r File-Server/requirements.txt
