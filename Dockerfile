@@ -1,6 +1,15 @@
 FROM fedora:latest
 MAINTAINER Vipin Kumar "kumarvipinyadav369@gmail.com"
-RUN yum install -y python-pip git
-ADD https://raw.githubusercontent.com/vipin3699/File-Server/master/install.sh .
+
+RUN yum install -y python3-pip git
+
+RUN git clone https://github.com/vipin3699/File-Server.git && \
+    python3 -m pip install -r File-Server/requirements.txt && \
+    mkdir -p /home/resut_files/ && \
+    chmod 777 /home/resut_files/
+
+WORKDIR File-Server
 EXPOSE 5000
-ENTRYPOINT ["sh", "install.sh"]
+
+ENTRYPOINT [ "python3" ]
+CMD ["run.py"]
