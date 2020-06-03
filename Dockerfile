@@ -4,7 +4,6 @@ MAINTAINER Vipin Kumar "kumarvipinyadav369@gmail.com"
 RUN yum install -y python3-pip git
 
 RUN git clone https://github.com/vipin3699/File-Server.git && \
-    python3 -m pip install wheel && \
     python3 -m pip install -r File-Server/requirements.txt && \
     mkdir -p /home/resut_files/ && \
     chmod 777 /home/resut_files/
