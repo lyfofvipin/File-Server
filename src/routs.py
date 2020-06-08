@@ -143,6 +143,6 @@ def home_api():
 def upload_file_api():
     return upload_api(request)
 
-@app.route("/api/<path:next_url>")
-def download_file_api(next_url):
-    return download_api(next_url)
+@app.route("/api/download")
+def download_file_api():
+    return download_api(request)

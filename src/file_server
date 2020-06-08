@@ -1,0 +1,71 @@
+#!/usr/bin/python3
+import requests, click, os
+
+FileServerUrl = "http://localhost:5000/api"
+config = {}
+
+@click.group()
+@click.option("--password", "-P",help="Pass User Password or you can export as variable FILE_PASSWORD")
+@click.option("--username", "-U",help="Pass Username or you can export as variable FILE_USERNAME")
+@click.option("--product", "-p", type=click.Choice(['ccsp', 'rhosp', 'hardware', 'rhelapp']), help="Pass any product")
+@click.option("--rhcert", "-r",type=click.Choice(['7.13']),  help="Pass Rhcert Value")
+@click.option("--arc","-a", type=click.Choice(['x86_64', 'aarch64', 's390x', 'ppc64le']), help="Pass arch")
+@click.option("--rhel", type=click.Choice(['6', '7', '8']), help="Pass rhel version")
+@click.option("--rhos",type=click.Choice(['16.0', '16.1']), help="Pass rhosp version")
+@click.option("--file", "-f", help="file path you want to upload on system is file in same dir then just give it's name")
+def fs_cli(product, rhcert, arc, rhel, rhos, file, password, username):
+    global config
+    if os.environ.get("FILE_PASSWORD") and os.environ.get("FILE_USERNAME"):
+        password = os.environ.get("FILE_PASSWORD")
+        username = os.environ.get("FILE_USERNAME")
+    config['password'], config['username'] = str(password), str(username)
+    config['product'], config['rhcert'], config['arc'], config['rhel'], config['rhos'], config['file'] = product, rhcert, arc, rhel, rhos, file
+
+@fs_cli.command()
+def download():
+    """
+        This option is use to download files.
+    """
+    global FileServerUrl
+    global config
+    
+    product, rhcert, arc, rhel, rhos, file = config['product'], config['rhcert'], config['arc'], config['rhel'], config['rhos'], config['file']
+    FileServerUrl = os.path.join(FileServerUrl, "download")
+    path = os.path.join(FileServerUrl, product if product else "", "RHCERT-"+rhcert if rhcert else "", "RHOSP-"+rhos if rhos else "", arc if arc else "", "RHEL-"+rhel if rhel else "")
+    parameters = {'product': product, 'rhcert': rhcert, 'arc':arc, 'rhos':rhos, 'rhel':rhel, 'file': file}
+    if file and product and rhcert and arc and rhel:
+        req = requests.get(FileServerUrl, params=parameters, auth=(config.get('username'), config.get('password')))
+        with open(file, "wb") as file_to_download:
+            print("Downloading......")
+            file_to_download.write(req.content)
+        print("Download Compleat")
+    else:
+        req = requests.get(FileServerUrl, params=parameters, auth=(config.get('username'), config.get('password')))
+        print(req.text)
+
+@fs_cli.command()
+def upload():
+    """
+        This option is use to upload files.
+    """
+    global FileServerUrl
+    global config
+
+    product, rhcert, arc, rhel, rhos, file = config['product'], config['rhcert'], config['arc'], config['rhel'], config['rhos'], config['file']
+    FileServerUrl = os.path.join(FileServerUrl, "upload")
+    path = os.path.join(FileServerUrl, product if product else "", "RHCERT-"+rhcert if rhcert else "", "RHOSP-"+rhos if rhos else "", arc if arc else "", "RHEL-"+rhel if rhel else "")
+    parameters = {'product': product, 'rhcert': rhcert, 'arc':arc, 'rhos':rhos, 'rhel':rhel, 'file': file}
+    if file:
+        if not os.path.exists(file):
+            print("File path is not valid.")
+            exit(1)
+        with open(file, "rb") as file_to_upload:
+            print("Uploading......")
+            content = {'file': (file, file_to_upload.read())}
+            req = requests.post(FileServerUrl, params=parameters, auth=(config.get('username'), config.get('password')), files=content)
+            print(req.text)
+    else:
+        print("Please pass file path with --file flag")
+
+if __name__ == "__main__":
+    fs_cli()
