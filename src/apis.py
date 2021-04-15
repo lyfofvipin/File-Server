@@ -19,7 +19,8 @@ def download_api(request):
         if not (product and rhcert and arc and rhel) and file_name: return jsonify({'message': "You are missing some arguments"}), 404
         path = os.path.join(result_base_dir_path, product if product else "", "RHCERT-"+rhcert if rhcert else "", "RHOSP-"+rhos if rhos else "", arc if arc else "", "RHEL-"+rhel if rhel else "")
         if os.path.isdir(path):
-            return jsonify({"aviable_data_on_path": os.listdir(path)})
+            files = [ x for x in os.listdir(path) if x != "site.db"]
+            return jsonify({"aviable_data_on_path": files})
         elif os.path.exists(path):
             return send_from_directory(path, file_name, as_attachment=True)
         else:
