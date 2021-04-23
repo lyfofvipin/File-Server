@@ -1,6 +1,6 @@
 import os
 from flask import jsonify, request, send_from_directory, make_response
-from src import app, db, result_base_dir_path, Products, Arcs, Product_Versions, RHELS, RHOS, config_dir, bcrypt
+from src import app, db, result_base_dir_path, Products, Categories, Product_Versions, Sub_Categories, Sub_Product_Versions, config_dir, bcrypt
 from src.modules import list_dirs, file_validater
 from src.models import User
 

@@ -5,47 +5,33 @@ from flask_login import LoginManager
 
 
 config_dir = {
-    "rhosp": {
-        "RHOSP-16.0": {
-            'x86_64': ["RHEL-8"],
-            'ppc64le': ["RHEL-8"]
+    "Product1": {
+        "Sub_Product1": {
+            'category1': ["sub_category_1", "sub_category_2", "sub_category_3", "sub_category_4"],
+            'category2': ["sub_category_1", "sub_category_2", "sub_category_3", "sub_category_4"],
+            'category3': ["sub_category_1", "sub_category_2", "sub_category_3", "sub_category_4"],
+            'category4': ["sub_category_1", "sub_category_2", "sub_category_3", "sub_category_4"]
         },
-        "RHOSP-16.1": {
-            'x86_64': ["RHEL-8"],
-            'ppc64le': ["RHEL-8"]
+        "Sub_Product2": {
+            'category1': ["sub_category_1"],
+            'category2': ["sub_category_1"]
         }   
     },
-    "ccsp": {
+    "Product2": {
         "": {
-            'x86_64': ["RHEL-6", "RHEL-7", "RHEL-8"],
-            'aarch64': ["RHEL-6", "RHEL-7", "RHEL-8"],
-            's390x': ["RHEL-6", "RHEL-7", "RHEL-8"],
-            'ppc64le': ["RHEL-6", "RHEL-7", "RHEL-8"]
+            'category1': []
         }
     },
-    "rhelapp": {
-        "": {
-            'x86_64': ["RHEL-8"],
-            'aarch64': ["RHEL-8"],
-            's390x': ["RHEL-8"],
-            'ppc64le': ["RHEL-8"]
-        }
+    "Product3": {
+        "": {}
     },
-    "hardware": {
-        "": {
-            'x86_64': ["RHEL-6", "RHEL-7", "RHEL-8"],
-            'aarch64': ["RHEL-6", "RHEL-7", "RHEL-8"],
-            's390x': ["RHEL-6", "RHEL-7", "RHEL-8"],
-            'ppc64le': ["RHEL-6", "RHEL-7", "RHEL-8"]
-        }
-    }
 }
 
-RHELS = ["RHEL-6", "RHEL-7", "RHEL-8"]
-Products = ["rhosp", "ccsp", "rhelapp", "Hardware"]
-Arcs = ["x86_64", "aarch64", "s390x", "ppc64le"]
-Product_Versions = ["RHCERT-7.13"]
-RHOS = ["RHOSP-16.0", "RHOSP-16.1"]
+Sub_Categories = ["sub_category_1", "sub_category_2", "sub_category_3", "sub_category_4"],
+Products = ["Sub_Product1", "Sub_Product2", "Product3"]
+Categories = ["category1", "category2", "category3", "category4"]
+Product_Versions = ["01"]
+Sub_Product_Versions = ["Sub_Product1", "Sub_Product2"]
 supported_file_extension = ["xml", "gz"]
 result_base_dir_path = "/home/resut_files/"
 app = Flask(__name__)
