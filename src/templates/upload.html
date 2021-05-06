@@ -9,24 +9,24 @@
                 <option name="{{ product }}" value="{{ product }}">{{ product.capitalize() }}</option>
             {% endfor %}
         </select>
-        <select class="custom-select custom-select-sm mb-3" id="rhos" name="rhos">
-            {% for rhos in RHOS %}
-                <option name="{{ rhos }}" value="{{ rhos }}">{{ rhos.capitalize() }}</option>
-            {% endfor %}
-        </select>
-        <select class="custom-select custom-select-sm mb-3" id="rhel" name="rhel">
-            {% for rhel in RHELS %}
-                <option name="{{ rhel }}" value="{{ rhel }}">{{ rhel.capitalize() }}</option>
-            {% endfor %}
-        </select>
-        <select class="custom-select custom-select-sm mb-3" id="arc" name="arc">
-            {% for arc in Arcs %}
-                <option name="{{ arc }}" value="{{ arc }}">{{ arc.capitalize() }}</option>
-            {% endfor %}
-        </select>
         <select class="custom-select custom-select-sm mb-3" id="version" name="version">
             {% for version in Product_Versions %}
                 <option name="{{ version }}" value="{{ version }}">{{ version }}</option>
+            {% endfor %}
+        </select>
+        <select class="custom-select custom-select-sm mb-3" id="sub_prod" name="sub_prod">
+            {% for sub_prod in Sub_Product_Versions %}
+                <option name="{{ sub_prod }}" value="{{ sub_prod }}">{{ sub_prod.capitalize() }}</option>
+            {% endfor %}
+        </select>
+        <select class="custom-select custom-select-sm mb-3" id="category" name="category">
+            {% for category in Categories %}
+                <option name="{{ category }}" value="{{ category }}">{{ category.capitalize() }}</option>
+            {% endfor %}
+        </select>
+        <select class="custom-select custom-select-sm mb-3" id="sub_category" name="sub_category">
+            {% for sub_category in Sub_Categories %}
+                <option name="{{ sub_category }}" value="{{ sub_category }}">{{ sub_category.capitalize() }}</option>
             {% endfor %}
         </select>
         <div class="form-group">

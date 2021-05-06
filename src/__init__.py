@@ -27,10 +27,10 @@ config_dir = {
     },
 }
 
-Sub_Categories = ["sub_category_1", "sub_category_2", "sub_category_3", "sub_category_4"],
-Products = ["Sub_Product1", "Sub_Product2", "Product3"]
+Sub_Categories = ["sub_category_1", "sub_category_2", "sub_category_3", "sub_category_4"]
+Products = ["Product1", "Product2", "Product3"]
 Categories = ["category1", "category2", "category3", "category4"]
-Product_Versions = ["01"]
+Product_Versions = ["01", "02"]
 Sub_Product_Versions = ["Sub_Product1", "Sub_Product2"]
 supported_file_extension = ["xml", "gz"]
 result_base_dir_path = "/home/resut_files/"

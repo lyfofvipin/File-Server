@@ -100,14 +100,14 @@ def file_and_folders(next_url):
 def upload_file():
     if current_user.role:
         if request.method == "POST":
-            product, arc, version, rhel, rhos = request.form['product'], request.form['arc'], request.form['version'], request.form['rhel'], request.form['rhos']
+            product, sub_category, version, category, sub_prod = request.form['product'], request.form['sub_category'], request.form['version'], request.form['category'], request.form['sub_prod']
             file_name = request.files['file_to_upload'].filename
             if not file_name:
                 flash(f'Select a File to Upload.', 'danger')
                 return redirect(url_for('upload_file'))
             if file_validater(file_name):
-                file_path = os.path.join(result_base_dir_path, product, version, rhos if product == "rhosp" else "", arc, rhel, file_name)
-                if os.path.exists(os.path.join(result_base_dir_path, product, version, rhos if product == "rhosp" else "", arc, rhel)):
+                file_path = os.path.join(result_base_dir_path, product, version, sub_prod, sub_category, category, file_name)
+                if os.path.exists(os.path.join(result_base_dir_path, product, version, sub_prod, sub_category, category)):
                     if os.path.exists(file_path):
                         flash(f'This file is allready on the server.', 'danger')
                     else:
@@ -119,7 +119,7 @@ def upload_file():
             else:
                 flash(f'Invalid file', 'danger')
                 return redirect(url_for('upload_file'))
-        return render_template("upload.html", title="File Server | Upload", Products=Products, Arcs=Arcs, Product_Versions=Product_Versions, RHELS=RHELS, RHOS=RHOS)
+        return render_template("upload.html", title="File Server | Upload", Products=Products, Sub_Categories=Sub_Categories, Product_Versions=Product_Versions, Categories=Categories, Sub_Product_Versions=Sub_Product_Versions)
     else:
         return render_template("403.html", title="File Server | ERROR"), 403
 
