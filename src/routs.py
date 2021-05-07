@@ -4,7 +4,7 @@ from src.forms import RegistrationForm, LoginForm, UpdateAccount
 from src.models import User
 from src import app, db, bcrypt, result_base_dir_path, Sub_Categories, Sub_Product_Versions, Products, Categories, Product_Versions
 from flask_login import login_user, current_user, logout_user, login_required
-from src.modules import list_dirs, file_validater
+from src.modules import list_dirs, file_validater, get_value
 from src.apis import home_page_api, download_api, upload_api
 
 @app.route("/")
@@ -106,8 +106,8 @@ def upload_file():
                 flash(f'Select a File to Upload.', 'danger')
                 return redirect(url_for('upload_file'))
             if file_validater(file_name):
-                file_path = os.path.join(result_base_dir_path, product, version, sub_prod, sub_category, category, file_name)
-                if os.path.exists(os.path.join(result_base_dir_path, product, version, sub_prod, sub_category, category)):
+                file_path = os.path.join(result_base_dir_path, get_value(product) , get_value(version), get_value(sub_prod), get_value(category), get_value(sub_category), file_name)
+                if os.path.exists(os.path.join(result_base_dir_path, get_value(product) , get_value(version), get_value(sub_prod), get_value(category), get_value(sub_category))):
                     if os.path.exists(file_path):
                         flash(f'This file is allready on the server.', 'danger')
                     else:
