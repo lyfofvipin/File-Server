@@ -16,3 +16,6 @@ class User(db.Model, UserMixin):
 
     def __repr__(self):
         return "Name: " + self.username + " email: " + self.email + " Role: " + str(self.role)
+
+db.create_all()
+db.session.commit()

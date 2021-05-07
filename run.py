@@ -16,15 +16,15 @@ def create_directory_structure():
             for sub_version in config_dir[product].keys():
                 if sub_version: 
                     makedir(os.path.join(result_base_dir_path, product, version, sub_version))
-                    for arc in config_dir[product][sub_version].keys():
-                        makedir(os.path.join(result_base_dir_path, product, version, sub_version, arc))
-                        for rhel in config_dir[product][sub_version][arc]:
-                            makedir(os.path.join(result_base_dir_path, product, version, sub_version, arc, rhel))
+                    for sub_category in config_dir[product][sub_version].keys():
+                        makedir(os.path.join(result_base_dir_path, product, version, sub_version, sub_category))
+                        for category in config_dir[product][sub_version][sub_category]:
+                            makedir(os.path.join(result_base_dir_path, product, version, sub_version, sub_category, category))
                 else:
-                    for arc in config_dir[product][sub_version].keys():
-                        makedir(os.path.join(result_base_dir_path, product, version, sub_version, arc))
-                        for rhel in config_dir[product][sub_version][arc]:
-                            makedir(os.path.join(result_base_dir_path, product, version, sub_version, arc, rhel))
+                    for sub_category in config_dir[product][sub_version].keys():
+                        makedir(os.path.join(result_base_dir_path, product, version, sub_version, sub_category))
+                        for category in config_dir[product][sub_version][sub_category]:
+                            makedir(os.path.join(result_base_dir_path, product, version, sub_version, sub_category, category))
 
 if __name__ == "__main__":
     create_directory_structure()
