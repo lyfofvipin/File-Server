@@ -4,8 +4,9 @@ from src.forms import RegistrationForm, LoginForm, UpdateAccount
 from src.models import User
 from src import app, db, bcrypt, result_base_dir_path, Sub_Categories, Sub_Product_Versions, Products, Categories, Product_Versions
 from flask_login import login_user, current_user, logout_user, login_required
-from src.modules import list_dirs, file_validater, get_value
-from src.apis import home_page_api, download_api, upload_api
+from src.modules import list_dirs, file_validater, get_value, find_files
+from src.apis import home_page_api, download_api, upload_api, replace_api
+
 
 @app.route("/")
 @app.route("/home")
@@ -115,13 +116,49 @@ def upload_file():
                         flash(f'File Uploaded successfully ', 'success')
                         return redirect(url_for('home'))
                 else:
-                    flash(f'Looks like you have selected wrong files. Please try again.', 'danger')
+                    flash(f'Looks like you have selected wrong fields. Please try again.', 'danger')
             else:
                 flash(f'Invalid file', 'danger')
                 return redirect(url_for('upload_file'))
         return render_template("upload.html", title="File Server | Upload", Products=Products, Sub_Categories=Sub_Categories, Product_Versions=Product_Versions, Categories=Categories, Sub_Product_Versions=Sub_Product_Versions)
     else:
         return render_template("403.html", title="File Server | ERROR"), 403
+
+@app.route("/replace", methods=["GET", "POST"])
+@login_required
+def replace_file():
+    available_files = []
+    if current_user.role:
+        if request.method == "POST":
+            try:
+                file_to_replace = request.form['file_to_replace']
+                if not file_to_replace:
+                    flash(f'Enter file name needs to be replaced.', 'danger')
+                    return render_template("replace.html", title="File Server | Replace File", ask_for_file=True)
+                available_files = find_files(file_to_replace, result_base_dir_path)
+            except KeyError :
+                file_name = request.files.get('file_to_upload').filename
+                if not file_name:
+                    flash(f'Select a File to Upload.', 'danger')
+                    return render_template("replace.html", title="File Server | Replace File", ask_for_file=True)
+                if file_validater(file_name):
+                    file_path = os.path.join(result_base_dir_path, request.form['available_file'])
+                    os.remove(file_path)
+                    file_path = "/".join(file_path.split("/")[:-1])
+                    file_path = os.path.join(file_path, file_name)
+                    request.files['file_to_upload'].save(file_path)
+                    flash(f'File Replaced successfully.', 'success')
+                else:
+                    flash("Invalid File please select Valid File.", 'danger')
+                    return render_template("replace.html", title="File Server | Replace File", ask_for_file=True)
+            if available_files:
+                flash(f'File Found Select The File You Want To Replace.', 'success')
+                return render_template("replace.html", title="File Server | Replace File", available_files=available_files)
+            else:
+                flash("File Not Found, Please check the file name and try again.", "danger")
+                return render_template("replace.html", title="File Server | Replace File", ask_for_file=True)
+        else:
+            return render_template("replace.html", title="File Server | Replace File", ask_for_file=True)
 
 @app.errorhandler(404)
 def error_404(error):
@@ -146,3 +183,7 @@ def upload_file_api():
 @app.route("/api/download")
 def download_file_api():
     return download_api(request)
+
+@app.route("/api/replace")
+def replace_file_api():
+    return replace_api(request)

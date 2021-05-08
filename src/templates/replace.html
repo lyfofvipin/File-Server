@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content-section">
+    {% if ask_for_file %}
+    <form action="{{ url_for('replace_file') }}" method="POST" enctype="multipart/form-data">
+        <legend class="border-bottom mb-4">Replace File</legend>
+        <div class="form-group">
+            <div class="col">
+                <label for="inputAddress">File Name</label><br>
+                <input type="text" class="form-control" id="file_to_replace" name="file_to_replace", placeholder="File Name e.g : ">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Replace</button>
+    </form>
+    {% endif %}
+    {% if available_files %}
+    <form action="{{ url_for('replace_file') }}" method="POST" enctype="multipart/form-data">
+        <legend class="border-bottom mb-4">Replace File</legend>
+        <div class="form-group">
+            <select class="custom-select custom-select-sm mb-3" id="available_file" name="available_file">
+                {% for available_file in available_files %}
+                    <option name="{{ available_file }}" value="{{ available_file }}">{{ available_file }}</option>
+                {% endfor %}
+            </select>
+            <div class="custom-file">
+                <label>Select New File</label><br>
+                <input type="file" id="file_to_upload" name="file_to_upload">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Replace</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

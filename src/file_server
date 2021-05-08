@@ -18,9 +18,9 @@ config = {}
 @click.option("--file", "-f", help="file path you want to upload on system is file in same dir then just give it's name.")
 def fs_cli(password, username, product, version, sub_prod, category, sub_category, file):
     global config
-    if os.environ.get("FILE_PASSWORD") and os.environ.get("FILE_USERNAME"):
-        password = os.environ.get("FILE_PASSWORD")
-        username = os.environ.get("FILE_USERNAME")
+    if os.environ.get("FS_PASSWORD") and os.environ.get("FS_USERNAME"):
+        password = os.environ.get("FS_PASSWORD")
+        username = os.environ.get("FS_USERNAME")
     config['password'], config['username'] = str(password), str(username)
     config['product'], config['version'], config['category'], config['sub_category'], config['sub_prod'], config['file'] = product, version, category, sub_category, sub_prod, file
 
@@ -66,6 +66,43 @@ def upload():
             print(req.text)
     else:
         print("Please pass file path with --file flag")
+
+@fs_cli.command()
+@click.option("--password", "-P", default="", help="Pass User Password or you can export as variable FS_PASSWORD")
+@click.option("--username", "-U", default="", help="Pass Username or you can export as variable FS_USERNAME")
+@click.option("--old_file", "-o", help="Pass Old file name you want to replace.")
+@click.option("--file_name", "-f", help="New file you want to upload")
+@click.option("--file_number", "-fn", required=False, help="This is a optional flag if there are multiple files with the same name then you can use this to pass the file number you want to replace.")
+def replace(password, username, old_file, file_name, file_number):
+    """
+        This option is use to replace a file on the File Server.
+    """
+    global FileServerUrl
+    global config
+
+    if os.environ.get("FS_PASSWORD") and os.environ.get("FS_USERNAME"):
+        password = os.environ.get("FS_PASSWORD")
+        username = os.environ.get("FS_USERNAME")
+    config['password'], config['username'] = str(password), str(username)
+    config['file'] = file_name
+
+    FileServerUrl = os.path.join(FileServerUrl, "replace")
+    parameters = {'file_to_replace': old_file, 'file_number': file_number if file_number else ''}
+    if file_name:
+        if not os.path.exists(file_name):
+            print( file_name + " file not found in this directory.")
+            exit(1)
+        with open(file_name, "rb") as file_to_upload:
+            print("Replacing " + file_name + " ....")
+            content = {'file': (file_name, file_to_upload.read())}
+            try:
+                req = requests.get(FileServerUrl, params=parameters, auth=(config.get('username'), config.get('password')), files=content)
+            except:
+                print("Something isn't right Check the parameters you are passing.")
+                req = ""
+            if str(req):
+                print(req.text)
+    if not file_name: print("Please pass a file path with --file_name/-f flag")
 
 if __name__ == "__main__":
     fs_cli()

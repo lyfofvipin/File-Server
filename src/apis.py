@@ -1,7 +1,7 @@
 import os
 from flask import jsonify, request, send_from_directory, make_response
 from src import app, db, result_base_dir_path, Products, Categories, Product_Versions, Sub_Categories, Sub_Product_Versions, config_dir, bcrypt
-from src.modules import list_dirs, file_validater, get_value
+from src.modules import list_dirs, file_validater, get_value, find_files
 from src.models import User
 
 def api_data_validator(request):
@@ -59,4 +59,39 @@ def upload_api(request):
                 "Supported Version": config_dir}), 404
         else:
             return jsonify({"message": "You don't have permission to access this api."})
+    return make_response(api_data_check, 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
+
+def replace_api(request):
+    file_index = 0
+    api_data_check = api_data_validator(request)
+    if "Auth Verified." in api_data_check:
+        if api_data_check[-1]:
+            try:
+                file_to_replace, new_file , file_number = request.args["file_to_replace"], request.files['file'], request.args.get("file_number")
+                file_name = new_file.filename
+                available_files = find_files(file_to_replace, result_base_dir_path)
+            except KeyError :
+                return jsonify({"message": "Looks like You are either missing the new file or the file name you want to replace."}), 404
+            if available_files:
+                if len(available_files) > 1 and not file_number:
+                    return jsonify({ "Found multiple files, pass the `file_number` with which you want to replace the file from the given list: ": [ str(number+1) + " --> " + file for number, file in enumerate(available_files)]})
+                file_number = int(file_number) if file_number else 0
+                try:
+                    file_index = file_number - 1
+                    print("Replacing file %s with %s" %(available_files[file_index], file_name))
+                except IndexError:
+                    return jsonify({ "message" : "You are passing the wrong file number. Retry without passing file number to see the list of files."}), 404
+                if file_validater(file_name):
+                    file_path = os.path.join(result_base_dir_path, available_files[file_index])
+                    os.remove(file_path)
+                    file_path = "/".join(file_path.split("/")[:-1])
+                    file_path = os.path.join(file_path, file_name)
+                    new_file.save(file_path)
+                    return jsonify({"message": "File Replaced Successfully."})
+                else:
+                    return jsonify({"message": "Invalid file please select a valid type of file."}), 404
+            else:
+                return jsonify({"message": "File not found on the File Server."}), 404
+        else:
+            return jsonify({"message": "You don't have permission to access this api."}), 404
     return make_response(api_data_check, 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
