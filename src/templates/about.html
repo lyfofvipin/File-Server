@@ -1,9 +1,290 @@
 {% extends "layout.html" %}
 {% block content %}
-    <h2>File Server</h2>
+<h1 id="file-server">File-Server</h1>
     <p>
         This is an open source project which is design to store log files <br>
         In this project we has assign user 2 different roles one is QE (Test Engineer) and another is Developer. <br>
         A QE can uploads and download and can remove files but a Developer can only Download the result files.
     </p>
+<p>This application is developed for sharing files between 2 different team.
+We have 2 type of user in this application one has a role of QE ( Tester ) and anther has role of developer, A user with QE role can upload files and downloads but a user with developer access can only download files. In this application we only support <code>.xml</code> and <code>.gz</code> file you can add more type by changing the values in <a href="https://github.com/vipin3699/File-Server/blob/master/src/__init__.py">__init__.py</a>.</p>
+<h2 id="deployment-step">Deployment Step</h2>
+<p>To deploy the app you can run this <a href="https://github.com/vipin3699/File-Server/blob/master/deploy_on_host.sh">script</a> or if you want to deploy on container then use this <a href="https://github.com/vipin3699/File-Server/blob/master/deploy_in_container.sh">script</a>.</p>
+<h2 id="available-url">Available URL</h2>
+<p><code>/</code> or <code>/home</code>  This URL will show all the <strong>directories</strong> available in <code>result_base_dir_path</code> variable in <a href="https://github.com/vipin3699/File-Server/blob/master/src/__init__.py">file</a>.</p>
+<p><code>/about</code>    This URL will show you the about page currently It&#39;s just the application description and the Documentation.</p>
+<p><code>/account</code>  This URL will show you the information of specific User.</p>
+<p><code>/upload</code>   This URL will only visible to User with QE role and from here you can upload files. (Auth Required)</p>
+<p><code>/login</code>    This URL will take you to login page and ask you to enter <em>username</em> and <em>password</em>.</p>
+<p><code>/register</code> This URL will help you in registering a new User.</p>
+<p><code>/home/&lt;path:&gt;</code> This URL is a dynamic URL It based on the file and directories available in system. (Auth Required)</p>
+<p><code>/replace</code> This URL will use to replace a file which is already on the File Server. (Auth Required)</p>
+<p><code>/api/replace</code>   This API will Replace file on the File Server. (Auth Required)</p>
+<h2 id="available-api">Available API</h2>
+<p><code>/api</code>      This API will give similar output as <code>/home</code> but in JSON format.</p>
+<p><code>/api/download</code> This API will list all the files available for download on the basic of given parameters and can download any file for you. (Auth Required)</p>
+<p><code>/api/upload</code>   This API will upload file on the basic of given parameters. (Auth Required)</p>
+<p><code>/api/replace</code>   This API will Replace file on the File Server. (Auth Required)</p>
+<h3 id="available-parameters-for-apis">Available parameters for APIs</h3>
+<p>Products --&gt; <code>It could be any string contains Product Names</code></p>
+<p><strong>Example product Product2</strong></p>
+<p>Product Versions --&gt; <code>It could be any string contain Product version like 01, 02 or any Values ..</code></p>
+<p><strong>Example version 7.13</strong></p>
+<p>Sub Product Names --&gt;  <code>It could be any string contain Sub Product Names</code></p>
+<p><strong>Example sub_prod Sub_Product1</strong></p>
+<p>Category Name --&gt; <code>It could be any string contain Category Names</code></p>
+<p><strong>Example Category category4</strong></p>
+<p>Sub Category Names --&gt; <code>It could be any string contains Sub Category Names</code></p>
+<p><strong>Example sub_category sub_category_3</strong></p>
+<p>File Names --&gt; This could be any name available on system which you want to upload or download.</p>
+<p><strong>Example file file_name.[xml|gz]</strong></p>
+<p>While downloading file you can pass file number also</p>
+<p><strong>Example file 1</strong></p>
+<p>file_to_replace --&gt; For Replace API we use this option to give the name of the file we want to replace.</p>
+<p><strong>Example file_to_replace file_name.[xml|gz]</strong></p>
+<p>new_file --&gt; This option is again used by replace api to pass the new file.</p>
+<p><strong>Example new_file file_name.[xml|gz]</strong></p>
+<p>file_number --&gt; This option is optional for replace api. ( If you have more then one file on the File Server use this to pass the file number. )</p>
+<p><strong>Example file_number 1</strong></p>
+<h2 id="setup-cli">Setup CLI</h2>
+<p>Below command will setup CLI for you</p>
+<p><code>sudo curl https://raw.githubusercontent.com/vipin3699/File-Server/master/src/file_server -o /usr/bin/file-server; sudo chmod 777 /usr/bin/file-server</code></p>
+<h2 id="how-cli-works">How CLI Works</h2>
+<p>Help for command file-server the <em>options</em> you are seeing here are use by <em>upload</em> and <em>download</em> command:</p>
+<pre><code>[vipikuma@kvy File-Server]$ file_server --help
+Usage: file_server [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  -P, --password <span class="hljs-keyword">TEXT</span>       Pass User Password <span class="hljs-keyword">or</span> you can export <span class="hljs-keyword">as</span> variable
+                            FS_PASSWORD
+
+  -U, --username <span class="hljs-keyword">TEXT</span>       Pass Username <span class="hljs-keyword">or</span> you can export <span class="hljs-keyword">as</span> variable
+                            FS_USERNAME
+
+  -p, --product <span class="hljs-keyword">TEXT</span>        Pass any product name
+  -v, --version <span class="hljs-keyword">TEXT</span>        Pass Product Version Value
+  -sp, --sub_prod <span class="hljs-keyword">TEXT</span>      Pass <span class="hljs-keyword">Sub</span> Product version
+  -c, --category <span class="hljs-keyword">TEXT</span>       Pass Category name
+  -sc, --sub_category <span class="hljs-keyword">TEXT</span>  Pass <span class="hljs-keyword">Sub</span> Category Name
+  -f, --file <span class="hljs-keyword">TEXT</span>           file path you want <span class="hljs-keyword">to</span> upload <span class="hljs-keyword">on</span> system <span class="hljs-keyword">is</span> file <span class="hljs-keyword">in</span>
+                            same dir <span class="hljs-keyword">then</span> just give it<span class="hljs-comment">'s name.</span>
+
+  --help                    Show this message <span class="hljs-keyword">and</span> <span class="hljs-keyword">exit</span>.
+
+Commands:
+  download  This <span class="hljs-keyword">option</span> <span class="hljs-keyword">is</span> use <span class="hljs-keyword">to</span> download files.
+  replace   This <span class="hljs-keyword">option</span> <span class="hljs-keyword">is</span> use <span class="hljs-keyword">to</span> replace a file <span class="hljs-keyword">on</span> the File Server.
+  upload    This <span class="hljs-keyword">option</span> <span class="hljs-keyword">is</span> use <span class="hljs-keyword">to</span> upload files.
+</code></pre><p>Help for replace Command:</p>
+<pre><code>[vipikuma@kvy File-Server]$ file_server <span class="hljs-keyword">replace</span> <span class="hljs-comment">--help</span>
+<span class="hljs-keyword">Usage</span>: file_server <span class="hljs-keyword">replace</span> [OPTIONS]
+
+  This <span class="hljs-keyword">option</span> <span class="hljs-keyword">is</span> <span class="hljs-keyword">use</span> <span class="hljs-keyword">to</span> <span class="hljs-keyword">replace</span> a <span class="hljs-keyword">file</span> <span class="hljs-keyword">on</span> the <span class="hljs-keyword">File</span> Server.
+
+Options:
+  -P, <span class="hljs-comment">--password TEXT      Pass User Password or you can export as variable</span>
+                           FS_PASSWORD
+
+  -U, <span class="hljs-comment">--username TEXT      Pass Username or you can export as variable</span>
+                           FS_USERNAME
+
+  -o, <span class="hljs-comment">--old_file TEXT      Pass Old file name you want to replace.</span>
+  -f, <span class="hljs-comment">--file_name TEXT     New file you want to upload</span>
+  -fn, <span class="hljs-comment">--file_number TEXT  This is a optional flag if there are multiple files</span>
+                           <span class="hljs-keyword">with</span> the same <span class="hljs-keyword">name</span> <span class="hljs-keyword">then</span> you can <span class="hljs-keyword">use</span> this <span class="hljs-keyword">to</span> pass
+                           the <span class="hljs-keyword">file</span> <span class="hljs-built_in">number</span> you want <span class="hljs-keyword">to</span> replace.
+
+  <span class="hljs-comment">--help                   Show this message and exit.</span>
+</code></pre><h3 id="examples-">Examples:</h3>
+<p>Here are the examples of command <code>file-server</code> for download, upload and replacing files:
+I have export the username and passwords as SHELL Environment Variables so I am not using -P and -U flags.</p>
+<h4 id="listing-and-downloading-files-">Listing and Downloading files:</h4>
+<p>Listing all Products:</p>
+<pre><code>[vipikuma@kvy <span class="hljs-built_in">File</span>-<span class="hljs-built_in">Server</span>]$ file_server download
+{
+  <span class="hljs-string">"aviable_data_on_path"</span>: [
+    <span class="hljs-string">"Product1"</span>, 
+    <span class="hljs-string">"Product3"</span>, 
+    <span class="hljs-string">"Product2"</span>
+  ]
+}
+</code></pre><p>Listing files of a specific Product:</p>
+<pre><code>[<span class="hljs-name">vipikuma@kvy</span> File-Server]$ file_server --product Product1 download
+'{
+  <span class="hljs-string">"aviable_data_on_path"</span>: [
+    <span class="hljs-string">"02"</span>, 
+    <span class="hljs-string">"01"</span>
+  ]
+}
+</code></pre><p>Listing files of a specific Product Version:</p>
+<pre><code>[vipikuma@kvy <span class="hljs-built_in">File</span>-<span class="hljs-built_in">Server</span>]$ file_server --product Product1 --version <span class="hljs-number">02</span> download
+{
+  <span class="hljs-string">"aviable_data_on_path"</span>: [
+    <span class="hljs-string">"Sub_Product1"</span>, 
+    <span class="hljs-string">"Sub_Product2"</span>
+  ]
+}
+</code></pre><p>Listing files of a specific Sub Product:</p>
+<pre><code>[<span class="hljs-string">vipikuma@</span><span class="hljs-string">kvy </span><span class="hljs-string">File-Server]</span>$ <span class="hljs-string">file_server </span><span class="hljs-built_in">--product</span> <span class="hljs-string">Product1 </span><span class="hljs-built_in">--version</span> <span class="hljs-string">02 </span><span class="hljs-built_in">--sub_prod</span> <span class="hljs-string">Sub_Product1 </span><span class="hljs-string">download
+</span>{
+  <span class="hljs-string">"aviable_data_on_path"</span>: [
+    <span class="hljs-string">"category3"</span>, 
+    <span class="hljs-string">"category4"</span>, 
+    <span class="hljs-string">"category2"</span>, 
+    <span class="hljs-string">"category1"</span>
+  ]
+}
+</code></pre><p>Listing files of a specific Category:</p>
+<pre><code>[<span class="hljs-string">vipikuma@</span><span class="hljs-string">kvy </span><span class="hljs-string">File-Server]</span>$ <span class="hljs-string">file_server </span><span class="hljs-built_in">--product</span> <span class="hljs-string">Product1 </span><span class="hljs-built_in">--version</span> <span class="hljs-string">02 </span><span class="hljs-built_in">--sub_prod</span> <span class="hljs-string">Sub_Product1 </span><span class="hljs-built_in">--category</span> <span class="hljs-string">category4 </span><span class="hljs-string">download
+</span>{
+  <span class="hljs-string">"aviable_data_on_path"</span>: [
+    <span class="hljs-string">"sub_category_2"</span>, 
+    <span class="hljs-string">"sub_category_3"</span>, 
+    <span class="hljs-string">"sub_category_1"</span>, 
+    <span class="hljs-string">"sub_category_4"</span>
+  ]
+}
+</code></pre><p>Listing files of a specific Sub Category:
+If you don&#39;t have any files on given values it will return a blank string.</p>
+<pre><code>[<span class="hljs-string">vipikuma@</span><span class="hljs-string">kvy </span><span class="hljs-string">File-Server]</span>$ <span class="hljs-string">file_server </span><span class="hljs-built_in">--product</span> <span class="hljs-string">Product1 </span><span class="hljs-built_in">--version</span> <span class="hljs-string">02 </span><span class="hljs-built_in">--sub_prod</span> <span class="hljs-string">Sub_Product1 </span><span class="hljs-built_in">--category</span> <span class="hljs-string">category4 </span><span class="hljs-built_in">--sub_category</span> <span class="hljs-string">sub_category_3 </span><span class="hljs-string">download
+</span>{
+  <span class="hljs-string">"aviable_data_on_path"</span>: []
+}
+</code></pre><pre><code>[<span class="hljs-string">vipikuma@</span><span class="hljs-string">kvy </span><span class="hljs-string">File-Server]</span>$ <span class="hljs-string">file_server </span><span class="hljs-built_in">--product</span> <span class="hljs-string">Product1 </span><span class="hljs-built_in">--version</span> <span class="hljs-string">01 </span><span class="hljs-built_in">--sub_prod</span> <span class="hljs-string">Sub_Product1 </span><span class="hljs-built_in">--category</span> <span class="hljs-string">category1 </span><span class="hljs-built_in">--sub_category</span> <span class="hljs-string">sub_category_1 </span><span class="hljs-string">download
+</span>{
+  <span class="hljs-string">"aviable_data_on_path"</span>: [
+    <span class="hljs-string">"file1.xml.gz"</span>, 
+    <span class="hljs-string">"Dockerfile.gz"</span>
+  ]
+}
+</code></pre><p>Downloading files from the File Server:</p>
+<pre><code><span class="hljs-title">[</span><span class="hljs-comment">vipikuma@kvy</span> <span class="hljs-comment">File</span><span class="hljs-literal">-</span><span class="hljs-comment">Server</span><span class="hljs-title">]</span><span class="hljs-comment">$</span> <span class="hljs-comment">file_server</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">product</span> <span class="hljs-comment">Product1</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">version</span> <span class="hljs-comment">01</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">sub_prod</span> <span class="hljs-comment">Sub_Product1</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">category</span> <span class="hljs-comment">category1</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">sub_category</span> <span class="hljs-comment">sub_category_1</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">file</span> <span class="hljs-comment">Dockerfile</span><span class="hljs-string">.</span><span class="hljs-comment">gz</span> <span class="hljs-comment">download</span>
+<span class="hljs-comment">Downloading</span><span class="hljs-string">.</span><span class="hljs-string">.</span><span class="hljs-string">.</span><span class="hljs-string">.</span><span class="hljs-string">.</span><span class="hljs-string">.</span>
+<span class="hljs-comment">Download</span> <span class="hljs-comment">Compleat</span>
+</code></pre><h4 id="uploading-files-via-cli-">Uploading files via CLI:</h4>
+<p>Uploading files to a specific Product:</p>
+<pre><code>[vipikuma@kvy <span class="hljs-keyword">File</span>-Server]<span class="hljs-symbol">$</span> file_server --product Product1 --<span class="hljs-keyword">file</span> file1.xml upload
+<span class="hljs-function"><span class="hljs-title">Uploading</span></span>......
+{
+  <span class="hljs-string">"message"</span>: <span class="hljs-string">"File Uploaded successfully"</span>
+}
+</code></pre><p>Uploading files to a specific Product Version:</p>
+<pre><code>[vipikuma@kvy <span class="hljs-keyword">File</span>-Server]<span class="hljs-symbol">$</span> file_server --product Product1 --version <span class="hljs-number">01</span> --<span class="hljs-keyword">file</span> file1.xml upload
+<span class="hljs-function"><span class="hljs-title">Uploading</span></span>......
+{
+  <span class="hljs-string">"message"</span>: <span class="hljs-string">"File Uploaded successfully"</span>
+}
+</code></pre><p>Uploading files to a specific Sub Product:</p>
+<pre><code>[vipikuma@kvy <span class="hljs-keyword">File</span>-Server]<span class="hljs-symbol">$</span> file_server --product Product1 --version <span class="hljs-number">01</span> --sub_prod Sub_Product2 --<span class="hljs-keyword">file</span> file1.xml upload
+<span class="hljs-function"><span class="hljs-title">Uploading</span></span>......
+{
+  <span class="hljs-string">"message"</span>: <span class="hljs-string">"File Uploaded successfully"</span>
+}
+</code></pre><p>Uploading files to a specific Category:</p>
+<pre><code><span class="hljs-string">file_server </span><span class="hljs-built_in">--product</span> <span class="hljs-string">Product1 </span><span class="hljs-built_in">--version</span> <span class="hljs-string">01 </span><span class="hljs-built_in">--sub_prod</span> <span class="hljs-string">Sub_Product1 </span><span class="hljs-built_in">--category</span> <span class="hljs-string">category3 </span><span class="hljs-built_in">--file</span> <span class="hljs-string">file1.</span><span class="hljs-string">xml </span><span class="hljs-string">upload
+</span><span class="hljs-string">Uploading.</span>.....
+{
+  <span class="hljs-string">"message"</span>: <span class="hljs-string">"File Uploaded successfully"</span>
+}
+</code></pre><p>Uploading files to a specific Sub Category:</p>
+<pre><code>[<span class="hljs-string">vipikuma@</span><span class="hljs-string">kvy </span><span class="hljs-string">File-Server]</span>$ <span class="hljs-string">file_server </span><span class="hljs-built_in">--product</span> <span class="hljs-string">Product1 </span><span class="hljs-built_in">--version</span> <span class="hljs-string">01 </span><span class="hljs-built_in">--sub_prod</span> <span class="hljs-string">Sub_Product1 </span><span class="hljs-built_in">--category</span> <span class="hljs-string">category3 </span><span class="hljs-built_in">--sub_category</span> <span class="hljs-string">sub_category_3 </span><span class="hljs-built_in">--file</span> <span class="hljs-string">file1.</span><span class="hljs-string">xml </span><span class="hljs-string">upload
+</span><span class="hljs-string">Uploading.</span>.....
+{
+  <span class="hljs-string">"message"</span>: <span class="hljs-string">"File Uploaded successfully"</span>
+}
+</code></pre><p>What if you miss some parameters like here I am trying to upload a file in a sub category but didn&#39;t pass the Category.</p>
+<pre><code>file_server --product Product1 --version <span class="hljs-number">01</span> --sub_prod Sub_Product1 \--sub_category sub_category_3 --file file1.xml upload
+Uploading......
+{
+  <span class="hljs-string">"Message"</span>: <span class="hljs-string">"Looks like you enter something wrong. Please try again."</span>, 
+  <span class="hljs-string">"Supported Version"</span>: {
+    <span class="hljs-string">"Product1"</span>: {
+      <span class="hljs-string">"Sub_Product1"</span>: {
+        <span class="hljs-string">"category1"</span>: [
+          <span class="hljs-string">"sub_category_1"</span>, 
+          <span class="hljs-string">"sub_category_2"</span>, 
+          <span class="hljs-string">"sub_category_3"</span>, 
+          <span class="hljs-string">"sub_category_4"</span>
+        ], 
+        <span class="hljs-string">"category2"</span>: [
+          <span class="hljs-string">"sub_category_1"</span>, 
+          <span class="hljs-string">"sub_category_2"</span>, 
+          <span class="hljs-string">"sub_category_3"</span>, 
+          <span class="hljs-string">"sub_category_4"</span>
+        ], 
+        <span class="hljs-string">"category3"</span>: [
+          <span class="hljs-string">"sub_category_1"</span>, 
+          <span class="hljs-string">"sub_category_2"</span>, 
+          <span class="hljs-string">"sub_category_3"</span>, 
+          <span class="hljs-string">"sub_category_4"</span>
+        ], 
+        <span class="hljs-string">"category4"</span>: [
+          <span class="hljs-string">"sub_category_1"</span>, 
+          <span class="hljs-string">"sub_category_2"</span>, 
+          <span class="hljs-string">"sub_category_3"</span>, 
+          <span class="hljs-string">"sub_category_4"</span>
+        ]
+      }, 
+      <span class="hljs-string">"Sub_Product2"</span>: {
+        <span class="hljs-string">"category1"</span>: [
+          <span class="hljs-string">"sub_category_1"</span>
+        ], 
+        <span class="hljs-string">"category2"</span>: [
+          <span class="hljs-string">"sub_category_1"</span>
+        ]
+      }
+    }, 
+    <span class="hljs-string">"Product2"</span>: {
+      <span class="hljs-string">""</span>: {
+        <span class="hljs-string">"category1"</span>: []
+      }
+    }, 
+    <span class="hljs-string">"Product3"</span>: {
+      <span class="hljs-string">""</span>: {}
+    }
+  }
+}
+</code></pre><h4 id="replacing-files-via-cli-">Replacing files via CLI:</h4>
+<p>Replacing File if multiple files available on the server:
+In such kind of scenario you need to pass </p>
+<pre><code>[vipikuma@kvy File-Server]$ file_server replace --old_file file1<span class="hljs-selector-class">.xml</span> --file_name file2<span class="hljs-selector-class">.xml</span> 
+Replacing file2<span class="hljs-selector-class">.xml</span> ....
+{
+  <span class="hljs-string">"Found multiple files, pass the `file_number` with which you want to replace the file from the given list: "</span>: [
+    <span class="hljs-string">"1 --&gt; Product1/file1.xml"</span>, 
+    <span class="hljs-string">"2 --&gt; Product1/01/file1.xml"</span>, 
+    <span class="hljs-string">"3 --&gt; Product1/01/Sub_Product1/category3/file1.xml"</span>, 
+    <span class="hljs-string">"4 --&gt; Product1/01/Sub_Product1/category3/sub_category_3/file1.xml"</span>, 
+    <span class="hljs-string">"5 --&gt; Product1/01/Sub_Product2/file1.xml"</span>
+  ]
+}
+</code></pre><p>Using <strong>file_number</strong> to replace a specific file:</p>
+<pre><code>[vipikuma@kvy File-Server]$ file_server replace --old_file file1<span class="hljs-selector-class">.xml</span> --file_number <span class="hljs-number">5</span> --file_name file2<span class="hljs-selector-class">.xml</span> 
+Replacing file2<span class="hljs-selector-class">.xml</span> ....
+{
+  <span class="hljs-string">"message"</span>: <span class="hljs-string">"File Replaced Successfully."</span>
+}
+</code></pre><pre><code>[vipikuma@kvy File-Server]$ file_server replace --old_file file1<span class="hljs-selector-class">.xml</span> --file_name file2<span class="hljs-selector-class">.xml</span> 
+Replacing file2<span class="hljs-selector-class">.xml</span> ....
+{
+  <span class="hljs-string">"Found multiple files, pass the `file_number` with which you want to replace the file from the given list: "</span>: [
+    <span class="hljs-string">"1 --&gt; Product1/file1.xml"</span>, 
+    <span class="hljs-string">"2 --&gt; Product1/01/file1.xml"</span>, 
+    <span class="hljs-string">"3 --&gt; Product1/01/Sub_Product1/category3/file1.xml"</span>, 
+    <span class="hljs-string">"4 --&gt; Product1/01/Sub_Product1/category3/sub_category_3/file1.xml"</span>
+  ]
+}
+</code></pre><p>If you only have 1 file available then it will auto replace that file without <strong>file_number</strong> parameter.</p>
+<pre><code>[vipikuma@kvy File-Server]$ file_server replace --old_file file2<span class="hljs-selector-class">.xml</span> --file_name file3<span class="hljs-selector-class">.xml</span> 
+Replacing file3<span class="hljs-selector-class">.xml</span> ....
+{
+  <span class="hljs-string">"message"</span>: <span class="hljs-string">"File Replaced Successfully."</span>
+}
+</code></pre><p>If the file is not on the FileServer:</p>
+<pre><code>[vipikuma@kvy File-Server]$ file_server replace --old_file file8<span class="hljs-selector-class">.xml</span> --file_name file3<span class="hljs-selector-class">.xml</span> 
+Replacing file3<span class="hljs-selector-class">.xml</span> ....
+{
+  <span class="hljs-string">"message"</span>: <span class="hljs-string">"File not found on the File Server."</span>
+}
+</code></pre>
 {% endblock %}
