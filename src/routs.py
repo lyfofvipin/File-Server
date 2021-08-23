@@ -2,7 +2,7 @@ import secrets, os, time
 from flask import render_template, url_for, flash, redirect, request, send_from_directory
 from src.forms import RegistrationForm, LoginForm, UpdateAccount
 from src.models import User
-from src import app, db, bcrypt, result_base_dir_path, Sub_Categories, Sub_Product_Versions, Products, Categories, Product_Versions
+from src import app, db, bcrypt, result_base_dir_path, Sub_Categories, Sub_Product_Versions, Products, Categories, Product_Versions, config_dir
 from flask_login import login_user, current_user, logout_user, login_required
 from src.modules import list_dirs, file_validater, get_value, find_files
 from src.apis import home_page_api, download_api, upload_api, replace_api
@@ -120,7 +120,7 @@ def upload_file():
             else:
                 flash(f'Invalid file', 'danger')
                 return redirect(url_for('upload_file'))
-        return render_template("upload.html", title="File Server | Upload", Products=Products, Sub_Categories=Sub_Categories, Product_Versions=Product_Versions, Categories=Categories, Sub_Product_Versions=Sub_Product_Versions)
+        return render_template("upload.html", title="File Server | Upload", Product_Versions=Product_Versions, config_dir=config_dir)
     else:
         return render_template("403.html", title="File Server | ERROR"), 403
 
