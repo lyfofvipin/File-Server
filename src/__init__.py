@@ -25,6 +25,8 @@ config_dir = {
     "Product3": {
         "": {}
     },
+    "Product4": {
+    },
 }
 Products = [ x for x in config_dir.keys()]
 Sub_Categories = ["sub_category_1", "sub_category_2", "sub_category_3", "sub_category_4"]
