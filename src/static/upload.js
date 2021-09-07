@@ -22,9 +22,10 @@ function insertValue(id_name, values)
 
 function display_sub_product() {
     var product = document.getElementById('product').value
-    values = config_dir[product]
+    var values = Object.keys(config_dir[product])
     remove_all_objects('sub_prod')
     insertValue('sub_prod', values)
+    return true
 }
 
 function display_category(){
@@ -33,6 +34,7 @@ function display_category(){
     var value = config_dir[product][sub_prod]
     remove_all_objects('category')
     insertValue('category', value)
+    return true
 }
 
 function display_sub_category(){
@@ -42,62 +44,43 @@ function display_sub_category(){
     var values = config_dir[product][sub_prod][category]
     remove_all_objects('sub_category')
     insertValue('sub_category', values)
+    return true
 }
 
 function remove_all_objects(id_name){
     select = document.getElementById(id_name)
-    for ( let x = select.length ; x > 0 ; x-- ){
+    for ( let x = select.length -1 ; x >= 0 ; x-- ){
         select[x].remove()
     }
+    return true
 }
 
 function update_values_on_select(){
     var product = document.getElementById('product').value
-    function check_availability(){
-        try{
-            var values = config_dir[product][sub_prod][category]
-            insertValue('sub_category', values)
-            document.getElementById('category').style.display = "none"
-        }
-        catch( err ){
-            console.log("Seems like we don't have any sub_category for the same.")
-            document.getElementById('category').style.display = "none"
-        }
-    }
-    if ( Object.keys(config_dir[product]) >= 1 ){
-        document.getElementById('sub_prod').classList.remove('display-hidden')
+    var sub_prod = document.getElementById('sub_prod')
+    var category = document.getElementById('category')
+    if ( Object.keys(config_dir[product]).length >= 1 && ! ( "" in config_dir[product] )){
+        sub_prod.classList.remove('display-hidden')
         display_sub_product()
     }
     else{
-        document.getElementById('sub_prod').classList.add('display-hidden')
-    }
-    if (check_availability())
-    // check_availability()
-    if ( Object.keys(config_dir[product]) >= 1 ){
-        document.getElementById('sub_prod').classList.remove('display-hidden')
-        display_sub_product()
+        sub_prod.classList.add('display-hidden')
     }
 
-}
-
-function update_for_product_selection(){
-    display_sub_product()
-    // Refresh Category select element Values in WUI
-    display_category()
-    // Refresh Sub_Category select element Values in WUI
-    display_sub_category()
-}
-
-function update_for_sub_product_selection(){
-    // Refresh Category select element Values in WUI
-    display_category()
-    // Refresh Sub_Category select element Values in WUI
-    display_sub_category()
+    if ( (sub_prod.classList.contains("display-hidden") || Object.keys(config_dir[product][sub_prod.value]).length >= 1 ) && ! ( "" in config_dir[product][sub_prod.value] && config_dir[product][sub_prod.value] != undefined )){
+        category.classList.remove('display-hidden')
+        console.log("Dfg")
+        display_category()
+    }
+    else{
+        category.classList.add('display-hidden')
+    }
+    return true
 }
 
 // Setup Products select element Values in WUI
 insertValue('product', config_dir)
-
+update_values_on_select()
 
 
 // // Setup Sub_Products select element Values in WUI
