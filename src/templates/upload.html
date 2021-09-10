@@ -8,9 +8,6 @@
     <form action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data">
         <legend class="border-bottom mb-4">Upload File</legend>
         <select class="custom-select custom-select-sm mb-3" onclick="update_values_on_select(call_product='call_product', call_sub_product='', call_category='', call_sub_category='');" id="product" name="product">
-            {% for product in Products %}
-                <!-- <option name="{{ product }}" value="{{ product }}">{{ product.capitalize() }}</option> -->
-            {% endfor %}
         </select>
         <select class="custom-select custom-select-sm mb-3" id="version" name="version">
             {% for version in Product_Versions %}
@@ -18,19 +15,10 @@
             {% endfor %}
         </select>
         <select class="custom-select custom-select-sm mb-3 display-hidden" onclick="update_values_on_select(call_product='', call_sub_product='call_sub_product', call_category='', call_sub_category='');" id="sub_prod" name="sub_prod">
-            {% for sub_prod in Sub_Product_Versions %}
-                <!-- <option name="{{ sub_prod }}" value="{{ sub_prod }}">{{ sub_prod.capitalize() }}</option> -->
-            {% endfor %}
         </select>
         <select class="custom-select custom-select-sm mb-3 display-hidden" onclick="update_values_on_select(call_product='', call_sub_product='', call_category='call_category', call_sub_category='');" id="category" name="category">
-            {% for category in Categories %}
-                <!-- <option name="{{ category }}" value="{{ category }}">{{ category.capitalize() }}</option> -->
-            {% endfor %}
         </select>
         <select class="custom-select custom-select-sm mb-3 display-hidden" onclick="update_values_on_select(call_product='', call_sub_product='', call_category='', call_sub_category='call_sub_category');" id="sub_category" name="sub_category">
-            {% for sub_category in Sub_Categories %}
-                <!-- <option name="{{ sub_category }}" value="{{ sub_category }}">{{ sub_category.capitalize() }}</option> -->
-            {% endfor %}
         </select>
         <div class="form-group">
             <div class="custom-file">
