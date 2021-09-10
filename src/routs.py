@@ -2,7 +2,7 @@ import secrets, os, time
 from flask import render_template, url_for, flash, redirect, request, send_from_directory
 from src.forms import RegistrationForm, LoginForm, UpdateAccount
 from src.models import User
-from src import app, db, bcrypt, result_base_dir_path, Sub_Categories, Sub_Product_Versions, Products, Categories, Product_Versions
+from src import app, db, bcrypt, result_base_dir_path, Sub_Categories, Sub_Product_Versions, Products, Categories, Product_Versions, config_dir
 from flask_login import login_user, current_user, logout_user, login_required
 from src.modules import list_dirs, file_validater, get_value, find_files
 from src.apis import home_page_api, download_api, upload_api, replace_api
@@ -94,21 +94,22 @@ def file_and_folders(next_url):
         return render_template("folders.html", folder_content=folder_content, next_url=next_url, join=os.path.join)
     else:
         folder_path, file_path = "/".join(path.split("/")[:-1]), path.split('/')[-1]
-        return send_from_directory(folder_path, file_path, as_attachment=True)
+        return send_from_directory(folder_path, file_path)
 
 @app.route("/upload", methods=["GET", "POST"])
 @login_required
 def upload_file():
     if current_user.role:
         if request.method == "POST":
-            product, sub_category, version, category, sub_prod = request.form['product'], request.form['sub_category'], request.form['version'], request.form['category'], request.form['sub_prod']
+            product, sub_category, version, category, sub_prod = request.form.get('product'), request.form.get('sub_category'), request.form.get('version'), request.form.get('category'), request.form.get('sub_prod')
             file_name = request.files['file_to_upload'].filename
             if not file_name:
                 flash(f'Select a File to Upload.', 'danger')
                 return redirect(url_for('upload_file'))
             if file_validater(file_name):
                 file_path = os.path.join(result_base_dir_path, get_value(product) , get_value(version), get_value(sub_prod), get_value(category), get_value(sub_category), file_name)
-                if os.path.exists(os.path.join(result_base_dir_path, get_value(product) , get_value(version), get_value(sub_prod), get_value(category), get_value(sub_category))):
+                print(file_path.replace(file_name, ""))
+                if os.path.exists(file_path.replace(file_name, "")):
                     if os.path.exists(file_path):
                         flash(f'This file is allready on the server.', 'danger')
                     else:
@@ -120,7 +121,7 @@ def upload_file():
             else:
                 flash(f'Invalid file', 'danger')
                 return redirect(url_for('upload_file'))
-        return render_template("upload.html", title="File Server | Upload", Products=Products, Sub_Categories=Sub_Categories, Product_Versions=Product_Versions, Categories=Categories, Sub_Product_Versions=Sub_Product_Versions)
+        return render_template("upload.html", title="File Server | Upload", Product_Versions=Product_Versions, config_dir=config_dir)
     else:
         return render_template("403.html", title="File Server | ERROR"), 403
 
