@@ -55,37 +55,77 @@ function remove_all_objects(id_name){
     return true
 }
 
-function update_values_on_select(){
+function update_values_on_select( call_product='', call_sub_product='', call_category='', call_sub_category='' ){
     var product = document.getElementById('product').value
     var sub_prod = document.getElementById('sub_prod')
     var category = document.getElementById('category')
-    if ( Object.keys(config_dir[product]).length >= 1 && ! ( "" in config_dir[product] )){
-        sub_prod.classList.remove('display-hidden')
-        display_sub_product()
-    }
-    else{
-        sub_prod.classList.add('display-hidden')
-    }
+    var sub_category = document.getElementById('sub_category')
 
-    if ( (sub_prod.classList.contains("display-hidden") || Object.keys(config_dir[product][sub_prod.value]).length >= 1 ) && ! ( "" in config_dir[product][sub_prod.value] && config_dir[product][sub_prod.value] != undefined )){
-        category.classList.remove('display-hidden')
-        console.log("Dfg")
-        display_category()
+    if ( call_product ){
+        if ( Object.keys(config_dir[product]).length == 1 && "" in config_dir[product] ){
+            sub_prod.classList.add('display-hidden')
+            display_sub_product()
+        }
+        else if ( Object.keys(config_dir[product]).length >= 1 ){
+            sub_prod.classList.remove('display-hidden')
+            display_sub_product()
+        }
+        else{
+            sub_prod.classList.add('display-hidden')
+        }
+    
+        if ( config_dir[product][sub_prod.value] != undefined && Object.keys(config_dir[product][sub_prod.value]).length == 1 && "" in config_dir[product][sub_prod.value] ){
+            category.classList.remove('display-hidden')
+            display_category()
+        }
+        else if ( config_dir[product][sub_prod.value] != undefined && Object.keys(config_dir[product][sub_prod.value]).length >= 1 ){
+            category.classList.remove('display-hidden')
+            display_category()
+        }
+        else{
+            category.classList.add('display-hidden')
+        }
+    }
+    else if ( call_sub_product ){
+        if ( config_dir[product][sub_prod.value] != undefined && Object.keys(config_dir[product][sub_prod.value]).length == 1 && "" in config_dir[product][sub_prod.value] ){
+            category.classList.remove('display-hidden')
+            display_category()
+        }
+        else if ( config_dir[product][sub_prod.value] != undefined && Object.keys(config_dir[product][sub_prod.value]).length >= 1 ){
+            category.classList.remove('display-hidden')
+            display_category()
+        }
+        else{
+            category.classList.add('display-hidden')
+        }
+    }
+    if ( config_dir[product][sub_prod.value] != undefined && config_dir[product][sub_prod.value][category.value] != undefined && config_dir[product][sub_prod.value][category.value].length >= 1 ){
+        sub_category.classList.remove('display-hidden')
+        display_sub_category()
     }
     else{
-        category.classList.add('display-hidden')
+        sub_category.classList.add('display-hidden')
     }
     return true
 }
 
+function clear_values_on_submit(){
+    var sub_prod = document.getElementById('sub_prod')
+    var category = document.getElementById('category')
+    var sub_category = document.getElementById('sub_category')
+    
+    if ( sub_prod.classList.contains("display-hidden") ){
+        remove_all_objects("sub_prod")
+    }
+    if ( category.classList.contains("display-hidden") ){
+        remove_all_objects("category")
+    }
+    if ( sub_category.classList.contains("display-hidden") ){
+        remove_all_objects("sub_category")
+    }
+
+}
+
 // Setup Products select element Values in WUI
 insertValue('product', config_dir)
-update_values_on_select()
-
-
-// // Setup Sub_Products select element Values in WUI
-// display_sub_product()
-// // Setup Category select element Values in WUI
-// display_category()
-// // Setup Sub_Category select element Values in WUI
-// display_sub_category()
+update_values_on_select('product_call')
