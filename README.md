@@ -94,27 +94,13 @@ Below command will setup CLI for you
 Once you are done with CLI setup command update the `Fs_Host` value in file `/usr/bin/file-server` with the IP/Hostname of server where the File-Server is hosted :)
 
 ## How CLI Works
-Help for command file-server the *options* you are seeing here are use by *upload* and *download* command:
+Help for the command `file-server`
 ```
-[vipikuma@kvy File-Server]$ file_server --help
+Hiting API's at : http://localhost:5000/api
 Usage: file_server [OPTIONS] COMMAND [ARGS]...
 
 Options:
-  -P, --password TEXT       Pass User Password or you can export as variable
-                            FS_PASSWORD
-
-  -U, --username TEXT       Pass Username or you can export as variable
-                            FS_USERNAME
-
-  -p, --product TEXT        Pass any product name
-  -v, --version TEXT        Pass Product Version Value
-  -sp, --sub_prod TEXT      Pass Sub Product version
-  -c, --category TEXT       Pass Category name
-  -sc, --sub_category TEXT  Pass Sub Category Name
-  -f, --file TEXT           file path you want to upload on system is file in
-                            same dir then just give it's name.
-
-  --help                    Show this message and exit.
+  --help  Show this message and exit.
 
 Commands:
   download  This option is use to download files.
