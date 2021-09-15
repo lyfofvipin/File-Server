@@ -1,11 +1,15 @@
 #!/usr/bin/python3
 try:
-    import requests, click, os, datetime
+    import requests, click, os
 except ImportError:
-    print("Fail to import modules make sure you have [ 'requests', 'click', 'os', 'datetime' ] modules installed")
+    print("sd")
+    raise ImportError("Fail to import modules make sure you have [ 'requests', 'click', 'os' ] modules installed.")
 
-FileServerUrl = "http://localhost:5000/api"
+Fs_Host = "http://localhost:5000"
+FileServerUrl = Fs_Host + "/api"
 config = {}
+
+print("Hiting API's at : " + FileServerUrl)
 
 @click.group()
 @click.option("--password", "-P", default="", help="Pass User Password or you can export as variable FS_PASSWORD")

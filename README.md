@@ -1,7 +1,14 @@
 # File-Server
 
-This application is developed for sharing files between 2 different team.
-We have 2 type of user in this application one has a role of QE ( Tester ) and anther has role of developer, A user with QE role can upload files and downloads but a user with developer access can only download files. In this application we only support `.xml` and `.gz` file you can add more type by changing the values in [\_\_init\_\_.py](https://github.com/vipin3699/File-Server/blob/master/src/__init__.py).
+This application is developed for sharing files between multiple teams.
+We have 2 type of user in this application one has a role of QE ( Tester ) and anther has role of developer, A user with QE role can upload files and downloads but a user with developer access can only download files. The application by default support only `.xml` and `.gz` file but you can always add more type by changing the values in [\_\_init\_\_.py](https://github.com/vipin3699/File-Server/blob/master/src/__init__.py).
+This app is developed using Python's Flask module.
+The work of this app is very simple It let you Upload, download and Replace Files ( via WUI, CLI and API's ).
+
+# A Simple UseCase
+
+In our case my teams are working in different regions across the globe so we need to share some result files with the developers and tester so we use it's WUI to share files with them,. In our Automaton we use it's CLI feature to pass the flags and Perform operations on the files. App has API's those are running on the Server so user can hit them also for Uploading and Downloading files.
+
 
 ## Deployment Step
 To deploy the app you can run this [script](https://github.com/vipin3699/File-Server/blob/master/deploy_on_host.sh) or if you want to deploy on container then use this [script](https://github.com/vipin3699/File-Server/blob/master/deploy_in_container.sh).
@@ -23,7 +30,6 @@ To deploy the app you can run this [script](https://github.com/vipin3699/File-Se
 
 `/replace` This URL will use to replace a file which is already on the File Server. (Auth Required)
 
-`/api/replace`   This API will Replace file on the File Server. (Auth Required)
 
 ## Available API
 `/api`      This API will give similar output as `/home` but in JSON format.
@@ -43,7 +49,7 @@ Products --> `It could be any string contains Product Names`
 
 Product Versions --> `It could be any string contain Product version like 01, 02 or any Values ..`
 
-**Example version 7.13**
+**Example version 01**
 
 Sub Product Names -->  `It could be any string contain Sub Product Names`
 
@@ -81,7 +87,11 @@ file_number --> This option is optional for replace api. ( If you have more then
 
 Below command will setup CLI for you
 
+*NOTE: CLI is not supported on Windows as of now.*
+
 `sudo curl https://raw.githubusercontent.com/vipin3699/File-Server/master/src/file_server -o /usr/bin/file-server; sudo chmod 777 /usr/bin/file-server`
+
+Once you are done with CLI setup command update the `Fs_Host` value in file `/usr/bin/file-server` with the IP/Hostname of server where the File-Server is hosted :)
 
 ## How CLI Works
 Help for command file-server the *options* you are seeing here are use by *upload* and *download* command:
@@ -138,7 +148,8 @@ Options:
 
 ### Examples:
 Here are the examples of command `file-server` for download, upload and replacing files:
-I have export the username and passwords as SHELL Environment Variables so I am not using -P and -U flags.
+
+Note: *I have export the username and passwords as Shell Environment Variables so I am not using -P and -U flags.*
 
 #### Listing and Downloading files:
 Listing all Products:
@@ -275,9 +286,9 @@ Uploading......
 }
 ```
 
-What if you miss some parameters like here I am trying to upload a file in a sub category but didn't pass the Category.
+What if you miss some parameters like here I am trying to upload a file with wrong values.
 ```
-file_server --product Product1 --version 01 --sub_prod Sub_Product1 \--sub_category sub_category_3 --file file1.xml upload
+file_server --product Product1 --version 01 --sub_prod Sub_Product1 --sub_category sub_category_3 --file file1.xml upload
 Uploading......
 {
   "Message": "Looks like you enter something wrong. Please try again.", 
@@ -334,6 +345,7 @@ Uploading......
 #### Replacing files via CLI:
 
 Replacing File if multiple files available on the server:
+
 In such kind of scenario you need to pass 
 ```
 [vipikuma@kvy File-Server]$ file_server replace --old_file file1.xml --file_name file2.xml 
