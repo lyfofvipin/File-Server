@@ -1,73 +1,86 @@
 #!/usr/bin/python3
 try:
-    import requests, click, os, datetime
+    import requests, click, os
 except ImportError:
-    print("Fail to import modules make sure you have [ 'requests', 'click', 'os', 'datetime' ] modules installed")
+    print("sd")
+    raise ImportError("Fail to import modules make sure you have [ 'requests', 'click', 'os' ] modules installed.")
 
-FileServerUrl = "http://localhost:5000/api"
+Fs_Host = "http://localhost:5000"
+FileServerUrl = Fs_Host + "/api"
 config = {}
 
-@click.group()
-@click.option("--password", "-P", default="", help="Pass User Password or you can export as variable FS_PASSWORD")
-@click.option("--username", "-U", default="", help="Pass Username or you can export as variable FS_USERNAME")
-@click.option("--product", "-p", help="Pass any product name")
-@click.option("--version", "-v", help="Pass Product Version Value")
-@click.option("--sub_prod", "-sp", help="Pass Sub Product version")
-@click.option("--category","-c", help="Pass Category name")
-@click.option("--sub_category", "-sc",  help="Pass Sub Category Name")
-@click.option("--file", "-f", help="file path you want to upload on system is file in same dir then just give it's name.")
-def fs_cli(password, username, product, version, sub_prod, category, sub_category, file):
+print("Hitting API's at : " + FileServerUrl)
+def set_config(password = "", username = ""):
     global config
     if os.environ.get("FS_PASSWORD") and os.environ.get("FS_USERNAME"):
         password = os.environ.get("FS_PASSWORD")
         username = os.environ.get("FS_USERNAME")
     config['password'], config['username'] = str(password), str(username)
-    config['product'], config['version'], config['category'], config['sub_category'], config['sub_prod'], config['file'] = product, version, category, sub_category, sub_prod, file
 
-@fs_cli.command()
-def download():
+@click.group()
+def main_fs_cli():
+    pass
+
+@main_fs_cli.command()
+@click.option("--password", "-P", default="", help="Pass User Password or you can export as variable FS_PASSWORD")
+@click.option("--username", "-U", default="", help="Pass Username or you can export as variable FS_USERNAME")
+@click.option("--product", "-p", help="Pass any product Value")
+@click.option("--version", "-v", help="Pass Product Version Value")
+@click.option("--sub_prod", "-sp", help="Pass Sub Product version, Value")
+@click.option("--category","-c", help="Pass Category Value")
+@click.option("--sub_category", "-sc",  help="Pass Sub Category Value")
+@click.option("--file", "-f", help="File name you want to download from the file server.")
+def download(password, username, product, version, sub_prod, category, sub_category, file):
     """
         This option is use to download files.
     """
+    set_config(password, username)
     global FileServerUrl
     global config
-    
-    product, version, category, sub_category, sub_prod, file = config['product'], config['version'], config['category'], config['sub_category'], config['sub_prod'], config['file']
+
     FileServerUrl = os.path.join(FileServerUrl, "download")
     parameters = {'product': product, 'version': version, 'category':category, 'sub_prod':sub_prod, 'sub_category':sub_category, 'file': file}
     req = requests.get(FileServerUrl, params=parameters, auth=(config.get('username'), config.get('password')))
     if req.ok and "aviable_data_on_path" not in req.text:
         with open(file, "wb") as file_to_download:
-            print("Downloading......")
+            print("Downloading...... \n" + file)
             file_to_download.write(req.content)
         print("Download Compleat")
     else:
         print(req.text)
 
-@fs_cli.command()
-def upload():
+@main_fs_cli.command()
+@click.option("--password", "-P", default="", help="Pass User Password or you can export as variable FS_PASSWORD")
+@click.option("--username", "-U", default="", help="Pass Username or you can export as variable FS_USERNAME")
+@click.option("--product", "-p", help="Pass any product value")
+@click.option("--version", "-v", help="Pass Product Version Value")
+@click.option("--sub_prod", "-sp", help="Pass Sub Product version")
+@click.option("--category","-c", help="Pass Category value")
+@click.option("--sub_category", "-sc",  help="Pass Sub Category value")
+@click.option("--file", "-f", multiple=True, help="file you want to upload on The File-Server")
+def upload(password, username, product, version, sub_prod, category, sub_category, file):
     """
         This option is use to upload files.
     """
+    set_config(password, username)
     global FileServerUrl
     global config
 
-    product, version, category, sub_category, sub_prod, file = config['product'], config['version'], config['category'], config['sub_category'], config['sub_prod'], config['file']
     FileServerUrl = os.path.join(FileServerUrl, "upload")
-    parameters = {'product': product, 'version': version, 'category':category, 'sub_prod':sub_prod, 'sub_category':sub_category, 'file': file}
-    if file:
-        if not os.path.exists(file):
-            print("File path is not valid.")
-            exit(1)
-        with open(file, "rb") as file_to_upload:
-            print("Uploading......")
-            content = {'file': (file, file_to_upload.read())}
-            req = requests.post(FileServerUrl, params=parameters, auth=(config.get('username'), config.get('password')), files=content)
-            print(req.text)
-    else:
-        print("Please pass file path with --file flag")
+    for file_name in [ x.split("/")[-1] for x in file]:
+        parameters = {'product': product, 'version': version, 'category':category, 'sub_prod':sub_prod, 'sub_category':sub_category, 'file': file_name}
+        if file_name:
+            if not os.path.exists(file_name):
+                print("File path is not valid.")
+                exit(1)
+            with open(file_name, "rb") as file_to_upload:
+                print("Uploading...... \n" + file_name)
+                content = {'file': (file_name, file_to_upload.read())}
+                req = requests.post(FileServerUrl, params=parameters, auth=(config.get('username'), config.get('password')), files=content)
+                print(req.text)
+    if not file: print("Please pass a file path with --file/-f flag")
 
-@fs_cli.command()
+@main_fs_cli.command()
 @click.option("--password", "-P", default="", help="Pass User Password or you can export as variable FS_PASSWORD")
 @click.option("--username", "-U", default="", help="Pass Username or you can export as variable FS_USERNAME")
 @click.option("--old_file", "-o", help="Pass Old file name you want to replace.")
@@ -105,4 +118,4 @@ def replace(password, username, old_file, file_name, file_number):
     if not file_name: print("Please pass a file path with --file_name/-f flag")
 
 if __name__ == "__main__":
-    fs_cli()
+    main_fs_cli()

@@ -1,7 +1,14 @@
 # File-Server
 
-This application is developed for sharing files between 2 different team.
-We have 2 type of user in this application one has a role of QE ( Tester ) and anther has role of developer, A user with QE role can upload files and downloads but a user with developer access can only download files. In this application we only support `.xml` and `.gz` file you can add more type by changing the values in [\_\_init\_\_.py](https://github.com/vipin3699/File-Server/blob/master/src/__init__.py).
+This application is developed for sharing files between multiple teams.
+We have 2 type of user in this application one has a role of QE ( Tester ) and anther has role of developer, A user with QE role can upload files and downloads but a user with developer access can only download files. The application by default support only `.xml` and `.gz` file but you can always add more type by changing the values in [\_\_init\_\_.py](https://github.com/vipin3699/File-Server/blob/master/src/__init__.py).
+This app is developed using Python's Flask module.
+The work of this app is very simple It let you Upload, download and Replace Files ( via WUI, CLI and API's ).
+
+# A Simple UseCase
+
+In our case my teams are working in different regions across the globe so we need to share some result files with the developers and tester so we use it's WUI to share files with them,. In our Automaton we use it's CLI feature to pass the flags and Perform operations on the files. App has API's those are running on the Server so user can hit them also for Uploading and Downloading files.
+
 
 ## Deployment Step
 To deploy the app you can run this [script](https://github.com/vipin3699/File-Server/blob/master/deploy_on_host.sh) or if you want to deploy on container then use this [script](https://github.com/vipin3699/File-Server/blob/master/deploy_in_container.sh).
@@ -23,7 +30,6 @@ To deploy the app you can run this [script](https://github.com/vipin3699/File-Se
 
 `/replace` This URL will use to replace a file which is already on the File Server. (Auth Required)
 
-`/api/replace`   This API will Replace file on the File Server. (Auth Required)
 
 ## Available API
 `/api`      This API will give similar output as `/home` but in JSON format.
@@ -43,7 +49,7 @@ Products --> `It could be any string contains Product Names`
 
 Product Versions --> `It could be any string contain Product version like 01, 02 or any Values ..`
 
-**Example version 7.13**
+**Example version 01**
 
 Sub Product Names -->  `It could be any string contain Sub Product Names`
 
@@ -81,30 +87,22 @@ file_number --> This option is optional for replace api. ( If you have more then
 
 Below command will setup CLI for you
 
+*NOTE: CLI is not supported on Windows as of now.*
+
 `sudo curl https://raw.githubusercontent.com/vipin3699/File-Server/master/src/file_server -o /usr/bin/file-server; sudo chmod 777 /usr/bin/file-server`
 
+Once you are done with CLI setup command update the `Fs_Host` value in file `/usr/bin/file-server` with the IP/Hostname of server where the File-Server is hosted :)
+
 ## How CLI Works
-Help for command file-server the *options* you are seeing here are use by *upload* and *download* command:
+Help for the command `file-server`
+
 ```
-[vipikuma@kvy File-Server]$ file_server --help
+[vipikuma@kvy File-Server]$ file_server 
+Hitting API's at : http://localhost:5000/api
 Usage: file_server [OPTIONS] COMMAND [ARGS]...
 
 Options:
-  -P, --password TEXT       Pass User Password or you can export as variable
-                            FS_PASSWORD
-
-  -U, --username TEXT       Pass Username or you can export as variable
-                            FS_USERNAME
-
-  -p, --product TEXT        Pass any product name
-  -v, --version TEXT        Pass Product Version Value
-  -sp, --sub_prod TEXT      Pass Sub Product version
-  -c, --category TEXT       Pass Category name
-  -sc, --sub_category TEXT  Pass Sub Category Name
-  -f, --file TEXT           file path you want to upload on system is file in
-                            same dir then just give it's name.
-
-  --help                    Show this message and exit.
+  --help  Show this message and exit.
 
 Commands:
   download  This option is use to download files.
@@ -112,10 +110,57 @@ Commands:
   upload    This option is use to upload files.
 ```
 
-Help for replace Command:
+Help for `download` Command:
+```
+[vipikuma@kvy File-Server]$ file_server download --help
+Hitting API's at : http://localhost:5000/api
+Usage: file_server download [OPTIONS]
+
+  This option is use to download files.
+
+Options:
+  -P, --password TEXT       Pass User Password or you can export as variable
+                            FS_PASSWORD
+  -U, --username TEXT       Pass Username or you can export as variable
+                            FS_USERNAME
+  -p, --product TEXT        Pass any product Value
+  -v, --version TEXT        Pass Product Version Value
+  -sp, --sub_prod TEXT      Pass Sub Product version, Value
+  -c, --category TEXT       Pass Category Value
+  -sc, --sub_category TEXT  Pass Sub Category Value
+  -f, --file TEXT           File name you want to download from the file
+                            server.
+  --help                    Show this message and exit.
+```
+
+Help for `upload` Command:
+
+```
+[vipikuma@kvy File-Server]$ file_server upload --help
+Hitting API's at : http://localhost:5000/api
+Usage: file_server upload [OPTIONS]
+
+  This option is use to upload files.
+
+Options:
+  -P, --password TEXT       Pass User Password or you can export as variable
+                            FS_PASSWORD
+  -U, --username TEXT       Pass Username or you can export as variable
+                            FS_USERNAME
+  -p, --product TEXT        Pass any product value
+  -v, --version TEXT        Pass Product Version Value
+  -sp, --sub_prod TEXT      Pass Sub Product version
+  -c, --category TEXT       Pass Category value
+  -sc, --sub_category TEXT  Pass Sub Category value
+  -f, --file TEXT           file you want to upload on The File-Server
+  --help                    Show this message and exit.
+```
+
+Help for `replace` Command:
 
 ```
 [vipikuma@kvy File-Server]$ file_server replace --help
+Hitting API's at : http://localhost:5000/api
 Usage: file_server replace [OPTIONS]
 
   This option is use to replace a file on the File Server.
@@ -138,12 +183,14 @@ Options:
 
 ### Examples:
 Here are the examples of command `file-server` for download, upload and replacing files:
-I have export the username and passwords as SHELL Environment Variables so I am not using -P and -U flags.
+
+Note: *I have export the username and passwords as Shell Environment Variables so I am not using -P and -U flags.*
 
 #### Listing and Downloading files:
 Listing all Products:
 ```
 [vipikuma@kvy File-Server]$ file_server download
+Hitting API's at : http://localhost:5000/api
 {
   "aviable_data_on_path": [
     "Product1", 
@@ -155,7 +202,8 @@ Listing all Products:
 
 Listing files of a specific Product:
 ```
-[vipikuma@kvy File-Server]$ file_server --product Product1 download
+[vipikuma@kvy File-Server]$ file_server download --product Product1
+Hitting API's at : http://localhost:5000/api
 '{
   "aviable_data_on_path": [
     "02", 
@@ -166,7 +214,8 @@ Listing files of a specific Product:
 
 Listing files of a specific Product Version:
 ```
-[vipikuma@kvy File-Server]$ file_server --product Product1 --version 02 download
+[vipikuma@kvy File-Server]$ file_server download --product Product1 --version 02
+Hitting API's at : http://localhost:5000/api
 {
   "aviable_data_on_path": [
     "Sub_Product1", 
@@ -177,7 +226,8 @@ Listing files of a specific Product Version:
 
 Listing files of a specific Sub Product:
 ```
-[vipikuma@kvy File-Server]$ file_server --product Product1 --version 02 --sub_prod Sub_Product1 download
+[vipikuma@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 
+Hitting API's at : http://localhost:5000/api
 {
   "aviable_data_on_path": [
     "category3", 
@@ -190,7 +240,8 @@ Listing files of a specific Sub Product:
 
 Listing files of a specific Category:
 ```
-[vipikuma@kvy File-Server]$ file_server --product Product1 --version 02 --sub_prod Sub_Product1 --category category4 download
+[vipikuma@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 --category category4
+Hitting API's at : http://localhost:5000/api
 {
   "aviable_data_on_path": [
     "sub_category_2", 
@@ -202,29 +253,34 @@ Listing files of a specific Category:
 ```
 
 Listing files of a specific Sub Category:
+
 If you don't have any files on given values it will return a blank string.
 
 ```
-[vipikuma@kvy File-Server]$ file_server --product Product1 --version 02 --sub_prod Sub_Product1 --category category4 --sub_category sub_category_3 download
+[vipikuma@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 --category category4 --sub_category sub_category_3
+Hitting API's at : http://localhost:5000/api
 {
   "aviable_data_on_path": []
 }
 ```
 
 ```
-[vipikuma@kvy File-Server]$ file_server --product Product1 --version 01 --sub_prod Sub_Product1 --category category1 --sub_category sub_category_1 download
+[vipikuma@kvy File-Server]$ file_server download --product Product1 --version 01 --sub_prod Sub_Product1 --category category1 --sub_category sub_category_1
+Hitting API's at : http://localhost:5000/api
 {
   "aviable_data_on_path": [
     "file1.xml.gz", 
-    "Dockerfile.gz"
+    "test_file.gz"
   ]
 }
 ```
 
 Downloading files from the File Server:
 ```
-[vipikuma@kvy File-Server]$ file_server --product Product1 --version 01 --sub_prod Sub_Product1 --category category1 --sub_category sub_category_1 --file Dockerfile.gz download
+[vipikuma@kvy File-Server]$ file_server download --product Product1 --version 01 --sub_prod Sub_Product1 --category category1 --sub_category sub_category_1 --file test_file.gz
+Hitting API's at : http://localhost:5000/api
 Downloading......
+test_file.gz
 Download Compleat
 ```
 
@@ -232,8 +288,10 @@ Download Compleat
 
 Uploading files to a specific Product:
 ```
-[vipikuma@kvy File-Server]$ file_server --product Product1 --file file1.xml upload
+[vipikuma@kvy File-Server]$ file_server upload --product Product1 --file file1.xml
+Hitting API's at : http://localhost:5000/api
 Uploading......
+file1.xml
 {
   "message": "File Uploaded successfully"
 }
@@ -241,8 +299,10 @@ Uploading......
 
 Uploading files to a specific Product Version:
 ```
-[vipikuma@kvy File-Server]$ file_server --product Product1 --version 01 --file file1.xml upload
+[vipikuma@kvy File-Server]$ file_server upload --product Product1 --version 01 --file file1.xml
+Hitting API's at : http://localhost:5000/api
 Uploading......
+file1.xml
 {
   "message": "File Uploaded successfully"
 }
@@ -250,8 +310,10 @@ Uploading......
 
 Uploading files to a specific Sub Product:
 ```
-[vipikuma@kvy File-Server]$ file_server --product Product1 --version 01 --sub_prod Sub_Product2 --file file1.xml upload
+[vipikuma@kvy File-Server]$ file_server upload --product Product1 --version 01 --sub_prod Sub_Product2 --file file1.xml
+Hitting API's at : http://localhost:5000/api
 Uploading......
+file1.xml
 {
   "message": "File Uploaded successfully"
 }
@@ -259,8 +321,10 @@ Uploading......
 
 Uploading files to a specific Category:
 ```
-file_server --product Product1 --version 01 --sub_prod Sub_Product1 --category category3 --file file1.xml upload
+file_server upload --product Product1 --version 01 --sub_prod Sub_Product1 --category category3 --file file1.xml
+Hitting API's at : http://localhost:5000/api
 Uploading......
+file1.xml
 {
   "message": "File Uploaded successfully"
 }
@@ -268,21 +332,56 @@ Uploading......
 
 Uploading files to a specific Sub Category:
 ```
-[vipikuma@kvy File-Server]$ file_server --product Product1 --version 01 --sub_prod Sub_Product1 --category category3 --sub_category sub_category_3 --file file1.xml upload
+[vipikuma@kvy File-Server]$ file_server upload --product Product1 --version 01 --sub_prod Sub_Product1 --category category3 --sub_category sub_category_3 --file file1.xml
+Hitting API's at : http://localhost:5000/api
 Uploading......
+file1.xml
 {
   "message": "File Uploaded successfully"
 }
 ```
 
-What if you miss some parameters like here I am trying to upload a file in a sub category but didn't pass the Category.
+Uploading multiple files:
 ```
-file_server --product Product1 --version 01 --sub_prod Sub_Product1 \--sub_category sub_category_3 --file file1.xml upload
+file_server upload --product Product1 --version 01 -U vipikuma -P test -f file1.xml -f file2.xml -f file3.xml
+Hitting API's at : http://localhost:5000/api
+Uploading...... 
+file1.xml
+{
+  "message": "File Uploaded successfully"
+}
+
+Uploading...... 
+file2.xml
+{
+  "message": "File Uploaded successfully"
+}
+
+Uploading...... 
+file3.xml
+{
+  "message": "File Uploaded successfully"
+}
+
+```
+
+What if you miss some parameters like here I am trying to upload a file with wrong values.
+```
+file_server upload --product Product1 --version 01 --sub_prod Sub_Product1 --sub_category sub_category_3 --file file1.xml
+Hitting API's at : http://localhost:5000/api
 Uploading......
 {
   "Message": "Looks like you enter something wrong. Please try again.", 
   "Supported Version": {
     "Product1": {
+      "": {
+        "category1": [
+          "sub_category_1"
+        ], 
+        "category2": [
+          "sub_category_1"
+        ]
+      }, 
       "Sub_Product1": {
         "category1": [
           "sub_category_1", 
@@ -293,20 +392,14 @@ Uploading......
         "category2": [
           "sub_category_1", 
           "sub_category_2", 
-          "sub_category_3", 
-          "sub_category_4"
+          "sub_category_3"
         ], 
         "category3": [
           "sub_category_1", 
-          "sub_category_2", 
-          "sub_category_3", 
-          "sub_category_4"
+          "sub_category_2"
         ], 
         "category4": [
-          "sub_category_1", 
-          "sub_category_2", 
-          "sub_category_3", 
-          "sub_category_4"
+          "sub_category_1"
         ]
       }, 
       "Sub_Product2": {
@@ -325,7 +418,8 @@ Uploading......
     }, 
     "Product3": {
       "": {}
-    }
+    }, 
+    "Product4": {}
   }
 }
 
@@ -334,9 +428,11 @@ Uploading......
 #### Replacing files via CLI:
 
 Replacing File if multiple files available on the server:
+
 In such kind of scenario you need to pass 
 ```
 [vipikuma@kvy File-Server]$ file_server replace --old_file file1.xml --file_name file2.xml 
+Hitting API's at : http://localhost:5000/api
 Replacing file2.xml ....
 {
   "Found multiple files, pass the `file_number` with which you want to replace the file from the given list: ": [
@@ -352,6 +448,7 @@ Replacing file2.xml ....
 Using __file_number__ to replace a specific file:
 ```
 [vipikuma@kvy File-Server]$ file_server replace --old_file file1.xml --file_number 5 --file_name file2.xml 
+Hitting API's at : http://localhost:5000/api
 Replacing file2.xml ....
 {
   "message": "File Replaced Successfully."
@@ -360,6 +457,7 @@ Replacing file2.xml ....
 
 ```
 [vipikuma@kvy File-Server]$ file_server replace --old_file file1.xml --file_name file2.xml 
+Hitting API's at : http://localhost:5000/api
 Replacing file2.xml ....
 {
   "Found multiple files, pass the `file_number` with which you want to replace the file from the given list: ": [
@@ -374,6 +472,7 @@ Replacing file2.xml ....
 If you only have 1 file available then it will auto replace that file without __file_number__ parameter.
 ```
 [vipikuma@kvy File-Server]$ file_server replace --old_file file2.xml --file_name file3.xml 
+Hitting API's at : http://localhost:5000/api
 Replacing file3.xml ....
 {
   "message": "File Replaced Successfully."
@@ -383,8 +482,10 @@ Replacing file3.xml ....
 If the file is not on the FileServer:
 ```
 [vipikuma@kvy File-Server]$ file_server replace --old_file file8.xml --file_name file3.xml 
+Hitting API's at : http://localhost:5000/api
 Replacing file3.xml ....
 {
   "message": "File not found on the File Server."
 }
 ```
+**EOF**
