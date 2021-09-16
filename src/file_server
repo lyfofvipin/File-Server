@@ -43,7 +43,7 @@ def download(password, username, product, version, sub_prod, category, sub_categ
     req = requests.get(FileServerUrl, params=parameters, auth=(config.get('username'), config.get('password')))
     if req.ok and "aviable_data_on_path" not in req.text:
         with open(file, "wb") as file_to_download:
-            print("Downloading......")
+            print("Downloading...... \n" + file)
             file_to_download.write(req.content)
         print("Download Compleat")
     else:
@@ -57,7 +57,7 @@ def download(password, username, product, version, sub_prod, category, sub_categ
 @click.option("--sub_prod", "-sp", help="Pass Sub Product version")
 @click.option("--category","-c", help="Pass Category value")
 @click.option("--sub_category", "-sc",  help="Pass Sub Category value")
-@click.option("--file", "-f", help="file path you want to upload on system if file in same dir then just give it's name.")
+@click.option("--file", "-f", multiple=True, help="file you want to upload on The File-Server")
 def upload(password, username, product, version, sub_prod, category, sub_category, file):
     """
         This option is use to upload files.
@@ -66,20 +66,19 @@ def upload(password, username, product, version, sub_prod, category, sub_categor
     global FileServerUrl
     global config
 
-    product, version, category, sub_category, sub_prod, file = config['product'], config['version'], config['category'], config['sub_category'], config['sub_prod'], config['file']
     FileServerUrl = os.path.join(FileServerUrl, "upload")
-    parameters = {'product': product, 'version': version, 'category':category, 'sub_prod':sub_prod, 'sub_category':sub_category, 'file': file}
-    if file:
-        if not os.path.exists(file):
-            print("File path is not valid.")
-            exit(1)
-        with open(file, "rb") as file_to_upload:
-            print("Uploading......")
-            content = {'file': (file, file_to_upload.read())}
-            req = requests.post(FileServerUrl, params=parameters, auth=(config.get('username'), config.get('password')), files=content)
-            print(req.text)
-    else:
-        print("Please pass file path with --file flag")
+    for file_name in [ x.split("/")[-1] for x in file]:
+        parameters = {'product': product, 'version': version, 'category':category, 'sub_prod':sub_prod, 'sub_category':sub_category, 'file': file_name}
+        if file_name:
+            if not os.path.exists(file_name):
+                print("File path is not valid.")
+                exit(1)
+            with open(file_name, "rb") as file_to_upload:
+                print("Uploading...... \n" + file_name)
+                content = {'file': (file_name, file_to_upload.read())}
+                req = requests.post(FileServerUrl, params=parameters, auth=(config.get('username'), config.get('password')), files=content)
+                print(req.text)
+    if not file: print("Please pass a file path with --file/-f flag")
 
 @main_fs_cli.command()
 @click.option("--password", "-P", default="", help="Pass User Password or you can export as variable FS_PASSWORD")

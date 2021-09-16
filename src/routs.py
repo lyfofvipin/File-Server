@@ -1,4 +1,3 @@
-import pdb
 import secrets, os, time
 from flask import render_template, url_for, flash, redirect, request, send_from_directory
 from src.forms import RegistrationForm, LoginForm, UpdateAccount
@@ -7,6 +6,7 @@ from src import app, db, bcrypt, result_base_dir_path, Product_Versions, config_
 from flask_login import login_user, current_user, logout_user, login_required
 from src.modules import list_dirs, file_validater, get_value, find_files
 from src.apis import home_page_api, download_api, upload_api, replace_api
+import markdown
 
 
 @app.route("/")
@@ -18,7 +18,13 @@ def home():
 
 @app.route("/about")
 def about():
-    return render_template("about.html", title="File Server | About")
+    try:
+        with open('README.md', 'r') as f:
+            text = f.read()
+            html = markdown.markdown(text, encoding='utf8', extensions=['fenced_code', 'codehilite'])
+    except:
+        html = ""
+    return render_template("about.html", title="File Server | About", html=html)
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
