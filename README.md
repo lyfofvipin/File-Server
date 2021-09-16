@@ -1,7 +1,7 @@
 # File-Server
 
 This application is developed for sharing files between multiple teams.
-We have 2 type of user in this application one has a role of QE ( Tester ) and anther has role of developer, A user with QE role can upload files and downloads but a user with developer access can only download files. The application by default support only `.xml` and `.gz` file but you can always add more type by changing the values in [\_\_init\_\_.py](https://github.com/vipin3699/File-Server/blob/master/src/__init__.py).
+We have 2 type of user in this application one has a role of QE ( Tester ) and anther has role of developer, A user with QE role can upload files and downloads but a user with developer access can only download files. The application by default support only `.xml` and `.gz` file but you can always add more type by changing the values in [config.py](https://github.com/vipin3699/File-Server/blob/master/src/config.py).
 This app is developed using Python's Flask module.
 The work of this app is very simple It let you Upload, download and Replace Files ( via WUI, CLI and API's ).
 
@@ -12,9 +12,10 @@ In our case my teams are working in different regions across the globe so we nee
 
 ## Deployment Step
 To deploy the app you can run this [script](https://github.com/vipin3699/File-Server/blob/master/deploy_on_host.sh) or if you want to deploy on container then use this [script](https://github.com/vipin3699/File-Server/blob/master/deploy_in_container.sh).
+`Note: By default File-Server run on port 5000`
 
 ## Available URL
-`/` or `/home`  This URL will show all the **directories** available in `result_base_dir_path` variable in [file](https://github.com/vipin3699/File-Server/blob/master/src/__init__.py).
+`/` or `/home`  This URL will show all the **directories** available in `result_base_dir_path` variable in [file](https://github.com/vipin3699/File-Server/blob/master/src/config.py).
 
 `/about`    This URL will show you the about page currently It's just the application description and the Documentation.
 
@@ -488,4 +489,23 @@ Replacing file3.xml ....
   "message": "File not found on the File Server."
 }
 ```
+
+
+## Want to customise some fields
+File-Server has it's own default settings but you can change them according to your use case.
+all the settings are saved in a file name as [config.py](https://github.com/vipin3699/File-Server/blob/master/src/config.py)
+Here a few settings you can change.
+
+`config_dir` --> This looks like a simple Python dictatory but it plays a very vital role in File-Server. So the backend code check this variable and create a similar folder structure in the system. ( This make the process bit faster as It do not need to setup any database for the files )
+
+`port` --> This variable's value is used to decide that on which port of the system will be use by File-Server
+
+`supported_file_extension` --> This is a list that contains the extensions that will be allowed by the file-server. ( like by default it has only `xml` and `gz` )
+
+`result_base_dir_path` --> This is a string where File-Server store all the files and create all dictatory on the basic of `config_dir` you can update it's value if you want to use some another dictatory.
+
+`open_in_browser`  --> By default File-Server directly download all type of files. But there are some files like `.text`, `.pdf` those can directly be opened in a browser so You can set it's value to `False` if you want to open then in browser for you.
+
+`create_file_structure` --> So File-Server create a similar directory structure as `config_dir` but if you don't want that to happen you can just set it's value to `False`.
+
 **EOF**

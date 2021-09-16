@@ -1,4 +1,4 @@
-from src import app, Product_Versions, config_dir, result_base_dir_path
+from src import app, Product_Versions, config_dir, result_base_dir_path, create_file_structure, port
 import os
 
 def makedir(path):
@@ -8,7 +8,9 @@ def makedir(path):
     except FileExistsError:
         print("File allready exist.")
 
-def create_directory_structure():
+def create_directory_structure(create_file_structure):
+    if not create_file_structure:
+        return create_file_structure
     for product in config_dir.keys():
         makedir(os.path.join(result_base_dir_path, product))
         for version in Product_Versions:
@@ -27,5 +29,5 @@ def create_directory_structure():
                             makedir(os.path.join(result_base_dir_path, product, version, sub_version, sub_category, category))
 
 if __name__ == "__main__":
-    create_directory_structure()
-    app.run(debug=True, host='0.0.0.0')
+    create_directory_structure(create_file_structure)
+    app.run(debug=True, host='0.0.0.0', port=port)

@@ -2,7 +2,7 @@ import secrets, os, time
 from flask import render_template, url_for, flash, redirect, request, send_from_directory
 from src.forms import RegistrationForm, LoginForm, UpdateAccount
 from src.models import User
-from src import app, db, bcrypt, result_base_dir_path, Product_Versions, config_dir
+from src import app, db, bcrypt, result_base_dir_path, Product_Versions, config_dir, open_in_browser, create_file_structure
 from flask_login import login_user, current_user, logout_user, login_required
 from src.modules import list_dirs, file_validater, get_value, find_files
 from src.apis import home_page_api, download_api, upload_api, replace_api
@@ -101,11 +101,14 @@ def file_and_folders(next_url):
         return render_template("folders.html", folder_content=folder_content, next_url=next_url, join=os.path.join)
     else:
         folder_path, file_path = "/".join(path.split("/")[:-1]), path.split('/')[-1]
-        return send_from_directory(folder_path, file_path)
+        return send_from_directory(folder_path, file_path, as_attachment=open_in_browser)
 
 @app.route("/upload", methods=["GET", "POST"])
 @login_required
 def upload_file():
+    msg = "Seems like you have set the value of `create_file_structure` False in config.py file.\n Uploading files is not supported with that feature as of now."
+    if not create_file_structure:
+        return render_template("404.html", title="File Server | Not Supported", msg=msg), 404
     message, flag = " ", True
     if current_user.role:
         if request.method == "POST":

@@ -30,3 +30,6 @@ config_dir = {
 Product_Versions = ["01", "02"]
 supported_file_extension = ["xml", "gz"]
 result_base_dir_path = "/home/resut_files/"
+open_in_browser = False
+create_file_structure = True
+port = "5000"
