@@ -85,6 +85,14 @@ function update_values_on_select( call_product='', call_sub_product='', call_cat
         else{
             category.classList.add('display-hidden')
         }
+
+        if ( config_dir[product][sub_prod.value] != undefined && config_dir[product][sub_prod.value][category.value] != undefined && config_dir[product][sub_prod.value][category.value].length >= 1 ){
+            sub_category.classList.remove('display-hidden')
+            display_sub_category()
+        }
+        else{
+            sub_category.classList.add('display-hidden')
+        }
     }
     else if ( call_sub_product ){
         if ( config_dir[product][sub_prod.value] != undefined && Object.keys(config_dir[product][sub_prod.value]).length == 1 && "" in config_dir[product][sub_prod.value] ){
@@ -98,13 +106,23 @@ function update_values_on_select( call_product='', call_sub_product='', call_cat
         else{
             category.classList.add('display-hidden')
         }
-    }
-    if ( config_dir[product][sub_prod.value] != undefined && config_dir[product][sub_prod.value][category.value] != undefined && config_dir[product][sub_prod.value][category.value].length >= 1 ){
-        sub_category.classList.remove('display-hidden')
-        display_sub_category()
+
+        if ( config_dir[product][sub_prod.value] != undefined && config_dir[product][sub_prod.value][category.value] != undefined && config_dir[product][sub_prod.value][category.value].length >= 1 ){
+            sub_category.classList.remove('display-hidden')
+            display_sub_category()
+        }
+        else{
+            sub_category.classList.add('display-hidden')
+        }
     }
     else{
-        sub_category.classList.add('display-hidden')
+        if ( config_dir[product][sub_prod.value] != undefined && config_dir[product][sub_prod.value][category.value] != undefined && config_dir[product][sub_prod.value][category.value].length >= 1 ){
+            sub_category.classList.remove('display-hidden')
+            display_sub_category()
+        }
+        else{
+            sub_category.classList.add('display-hidden')
+        }
     }
     return true
 }
