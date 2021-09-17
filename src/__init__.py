@@ -2,43 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
-
-
-config_dir = {
-    "Product1": {
-        "Sub_Product1": {
-            'category1': ["sub_category_1", "sub_category_2", "sub_category_3", "sub_category_4"],
-            'category2': ["sub_category_1", "sub_category_2", "sub_category_3"],
-            'category3': ["sub_category_1", "sub_category_2"],
-            'category4': ["sub_category_1"]
-        },
-        "Sub_Product2": {
-            'category1': ["sub_category_1"],
-            'category2': ["sub_category_1"]
-        },
-        "": {
-            'category1': ["sub_category_1"],
-            'category2': ["sub_category_1"]
-        }   
-    },
-    "Product2": {
-        "": {
-            'category1': []
-        }
-    },
-    "Product3": {
-        "": {}
-    },
-    "Product4": {
-    },
-}
-Products = [ x for x in config_dir.keys()]
-Sub_Categories = ["sub_category_1", "sub_category_2", "sub_category_3", "sub_category_4"]
-Categories = ["category1", "category2", "category3", "category4"]
-Product_Versions = ["01", "02"]
-Sub_Product_Versions = ["Sub_Product1", "Sub_Product2"]
-supported_file_extension = ["xml", "gz"]
-result_base_dir_path = "/home/resut_files/"
+from src.config import *
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{0}site.db'.format(result_base_dir_path)
 app.config['SECRET_KEY'] = '3092e766d8a79953890a1c765ab6ca01'
