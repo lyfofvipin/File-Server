@@ -115,7 +115,7 @@ function update_values_on_select( call_product='', call_sub_product='', call_cat
             sub_category.classList.add('display-hidden')
         }
     }
-    else{
+    else  if ( call_category ) {
         if ( config_dir[product][sub_prod.value] != undefined && config_dir[product][sub_prod.value][category.value] != undefined && config_dir[product][sub_prod.value][category.value].length >= 1 ){
             sub_category.classList.remove('display-hidden')
             display_sub_category()
