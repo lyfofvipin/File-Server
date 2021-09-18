@@ -102,7 +102,7 @@ def file_and_folders(next_url):
         return render_template("folders.html", folder_content=folder_content, next_url=next_url, join=os.path.join)
     else:
         folder_path, file_path = "/".join(path.split("/")[:-1]), path.split('/')[-1]
-        return send_from_directory(folder_path, file_path, as_attachment=open_in_browser)
+        return send_from_directory(folder_path, file_path, as_attachment= not open_in_browser)
 
 @app.route("/upload", methods=["GET", "POST"])
 @login_required
