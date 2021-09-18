@@ -48,9 +48,11 @@
             </small>
         </form>
     </div>
-    <div class="border-top pt-3">
-        <small class="text-muted">
-            Need an account? <a class="ml-2" href="{{ url_for('register') }}">Register</a>
-        </small>
-    </div>
+    {% if allow_registractions %}
+        <div class="border-top pt-3">
+            <small class="text-muted">
+                Need an account? <a class="ml-2" href="{{ url_for('register') }}">Register</a>
+            </small>
+        </div>
+    {% endif %}
 {% endblock %}
