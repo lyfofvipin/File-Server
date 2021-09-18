@@ -7,6 +7,7 @@ def list_dirs(result_base_dir_path):
         if os.path.isdir(file_path): yield files
 
 def file_validater(file_name):
+    if not supported_file_extension: return True
     return True if file_name[-3:] in supported_file_extension or file_name[-2:] in supported_file_extension else False
 
 def get_value(item):

@@ -33,3 +33,4 @@ result_base_dir_path = "/home/resut_files/"
 open_in_browser = False
 create_file_structure = True
 port = "5000"
+allow_registractions = True

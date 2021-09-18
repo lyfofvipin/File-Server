@@ -2,7 +2,7 @@ import secrets, os, time
 from flask import render_template, url_for, flash, redirect, request, send_from_directory
 from src.forms import RegistrationForm, LoginForm, UpdateAccount
 from src.models import User
-from src import app, db, bcrypt, result_base_dir_path, Product_Versions, config_dir, open_in_browser, create_file_structure
+from src import *
 from flask_login import login_user, current_user, logout_user, login_required
 from src.modules import list_dirs, file_validater, get_value, find_files
 from src.apis import home_page_api, download_api, upload_api, replace_api
@@ -26,19 +26,20 @@ def about():
         html = ""
     return render_template("about.html", title="File Server | About", html=html)
 
-@app.route("/register", methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('home'))
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        user = User(username = form.username.data, email = form.email.data, password = hashed_password, role=form.role.data)
-        db.session.add(user)
-        db.session.commit()
-        flash(f'Account created for {form.username.data}! you are now able to login.', 'success')
-        return redirect(url_for('login'))
-    return render_template("register.html", title="File Server | REGISTER", form = form)
+if allow_registractions:
+    @app.route("/register", methods=['GET', 'POST'])
+    def register():
+        if current_user.is_authenticated:
+            return redirect(url_for('home'))
+        form = RegistrationForm()
+        if form.validate_on_submit():
+            hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+            user = User(username = form.username.data, email = form.email.data, password = hashed_password, role=form.role.data)
+            db.session.add(user)
+            db.session.commit()
+            flash(f'Account created for {form.username.data}! you are now able to login.', 'success')
+            return redirect(url_for('login'))
+        return render_template("register.html", title="File Server | REGISTER", form = form)
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
@@ -58,7 +59,7 @@ def login():
                 return redirect(url_for('home'))
         else:
             flash("Login Unsuccessfull, Please check Username or Password", "danger")
-    return render_template("login.html", title="File Server | LOGIN", form = form)
+    return render_template("login.html", title="File Server | LOGIN", form = form, allow_registractions=allow_registractions)
 
 @app.route("/logout")
 def logout():

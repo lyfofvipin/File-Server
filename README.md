@@ -500,12 +500,14 @@ Here a few settings you can change.
 
 `port` --> This variable's value is used to decide that on which port of the system will be use by File-Server
 
-`supported_file_extension` --> This is a list that contains the extensions that will be allowed by the file-server. ( like by default it has only `xml` and `gz` )
+`supported_file_extension` --> This is a list that contains the extensions that will be allowed by the file-server. ( like by default it has only `xml` and `gz` ) if left blank `[]` It will allow all type of files.
 
 `result_base_dir_path` --> This is a string where File-Server store all the files and create all dictatory on the basic of `config_dir` you can update it's value if you want to use some another dictatory.
 
 `open_in_browser`  --> By default File-Server directly download all type of files. But there are some files like `.text`, `.pdf` those can directly be opened in a browser so You can set it's value to `False` if you want to open then in browser for you.
 
 `create_file_structure` --> So File-Server create a similar directory structure as `config_dir` but if you don't want that to happen you can just set it's value to `False`.
+
+`allow_registractions`  --> This Option will enable and disable the registrations if True then File-Server will allow you to register new users, If False it won't open the `/register` url anymore.
 
 **EOF**
