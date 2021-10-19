@@ -191,6 +191,31 @@ def replace_file():
         else:
             return render_template("replace.html", title="File Server | Replace File", ask_for_file=True)
 
+@app.route("/delete", methods=["GET", "POST"])
+@login_required
+def delete_file():
+    available_files = []
+    if current_user.role:
+        if request.method == "POST":
+            try:
+                file_to_delete = request.form['file_to_delete']
+                if not file_to_delete:
+                    flash(f'Enter file name needs to be deleted.', 'danger')
+                    return render_template("delete.html", title="File Server | Delete File", ask_for_file=True)
+                available_files = find_files(file_to_delete, result_base_dir_path)
+            except KeyError :
+                file_path = os.path.join(result_base_dir_path, request.form['available_file'])
+                os.remove(file_path)
+                flash(f'File Deleted.', 'success')
+            if available_files:
+                flash(f'File Found. Press Delete to delete the file', 'success')
+                return render_template("delete.html", title="File Server | Replace File", available_files=available_files)
+            else:
+                flash("File Not Found, Please check the file name and try again.", "danger")
+                return render_template("delete.html", title="File Server | Replace File", ask_for_file=True)
+        else:
+            return render_template("delete.html", title="File Server | Replace File", ask_for_file=True)
+
 @app.errorhandler(404)
 def error_404(error):
     return render_template("404.html", title="File Server | ERROR"), 404
