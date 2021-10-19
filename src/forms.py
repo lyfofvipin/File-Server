@@ -31,6 +31,11 @@ class LoginForm(FlaskForm):
     password_change = BooleanField('Change my Password')
     submit = SubmitField('Login')
 
+class ChangePasswordForm(FlaskForm):
+    username = StringField("Username", validators=[DataRequired(), Length(min=3, max=30)])
+    old_password = PasswordField("Existing Password", validators=[DataRequired()])
+    new_password = PasswordField("New Password", validators=[DataRequired()])
+
 class UpdateAccount(FlaskForm):
     username = StringField("Username", validators=[Length(min=3, max=30)], render_kw={"placeholder": "username"})
     email = StringField("Email", validators=[Email()], render_kw={"placeholder": "email"})
