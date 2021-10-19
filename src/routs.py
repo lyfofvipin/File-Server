@@ -1,6 +1,6 @@
 import secrets, os, time
 from flask import render_template, url_for, flash, redirect, request, send_from_directory
-from src.forms import RegistrationForm, LoginForm, UpdateAccount
+from src.forms import RegistrationForm, LoginForm, UpdateAccount, ChangePasswordForm
 from src.models import User
 from src import *
 from flask_login import login_user, current_user, logout_user, login_required
@@ -60,6 +60,25 @@ def login():
         else:
             flash("Login Unsuccessfull, Please check Username or Password", "danger")
     return render_template("login.html", title="File Server | LOGIN", form = form, allow_registractions=allow_registractions)
+
+
+@app.route("/change-password", methods=['GET', 'POST'])
+def change_password():
+    form = ChangePasswordForm()
+    # if form.validate_on_submit():
+    #     user = User.query.filter_by(username=form.username.data).first()
+    #     if user and bcrypt.check_password_hash(user.password, form.password.data):
+    #         login_user(user, remember=form.remember.data)
+    #         if request.args.get('next'):
+    #             if "home" in request.args.get('next'):
+    #                 return redirect(url_for('file_and_folders', next_url=request.args.get('next').replace("/home", "") ))
+    #             else:
+    #                 return redirect(url_for('upload_file'))
+    #         else:
+    #             return redirect(url_for('home'))
+    #     else:
+    #         flash("Login Unsuccessfull, Please check Username or Password", "danger")
+    return render_template("password_change.html", title="File Server | Password Change", form = form)
 
 @app.route("/logout")
 def logout():
