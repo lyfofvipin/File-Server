@@ -65,20 +65,18 @@ def login():
 @app.route("/change-password", methods=['GET', 'POST'])
 def change_password():
     form = ChangePasswordForm()
-    # if form.validate_on_submit():
-    #     user = User.query.filter_by(username=form.username.data).first()
-    #     if user and bcrypt.check_password_hash(user.password, form.password.data):
-    #         login_user(user, remember=form.remember.data)
-    #         if request.args.get('next'):
-    #             if "home" in request.args.get('next'):
-    #                 return redirect(url_for('file_and_folders', next_url=request.args.get('next').replace("/home", "") ))
-    #             else:
-    #                 return redirect(url_for('upload_file'))
-    #         else:
-    #             return redirect(url_for('home'))
-    #     else:
-    #         flash("Login Unsuccessfull, Please check Username or Password", "danger")
-    return render_template("password_change.html", title="File Server | Password Change", form = form)
+    if form.validate_on_submit():
+         user = User.query.filter_by(username=form.username.data).first()
+         if user and bcrypt.check_password_hash(user.password, form.old_password.data):
+            if form.validate_on_submit():
+                hashed_password = bcrypt.generate_password_hash(form.new_password.data).decode('utf-8')
+                user.password = hashed_password
+                db.session.commit()
+                flash(f'Password changed for {form.username.data}', 'success')
+                return redirect(url_for('login'))
+         else:
+            flash("Username or Password is wrong", "danger")
+    return render_template("password_change.html", title="File Server | PASSWORD CHANGE", form = form)
 
 @app.route("/logout")
 def logout():
