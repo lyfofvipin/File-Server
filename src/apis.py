@@ -34,7 +34,7 @@ def download_api(request):
         elif os.path.exists(path):
             return send_from_directory(path, file_name, as_attachment=True)
         else:
-            return jsonify({'Message' : 'Looks like you enter something wrong. Please try again.',
+            return jsonify({'Message' : 'Looks like you entered something wrong. Please try again.',
                 "Supported Hierarchy": config_dir}), 404
     return make_response(api_data_check, 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
 
@@ -50,15 +50,15 @@ def upload_api(request):
             if not file_validater(file.filename): return jsonify({'message': 'Invalid file'}), 404
             if os.path.exists(path):
                 if os.path.exists(os.path.join(path, file.filename)):
-                    return jsonify({'message' : 'This file is allready on the server.'})
+                    return jsonify({'message' : 'This file is already on the server.'})
                 else:
                     file.save(os.path.join(path, file.filename))
                     return jsonify({'message' : 'File Uploaded successfully'})
             else:
-                return jsonify({'Message' : 'Looks like you enter something wrong. Please try again.',
+                return jsonify({'Message' : 'Looks like you entered something wrong. Please try again.',
                 "Supported Version": config_dir}), 404
         else:
-            return jsonify({"message": "You don't have permission to access this api."})
+            return jsonify({"message": "You don't have permission to access this API."})
     return make_response(api_data_check, 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
 
 def replace_api(request):
@@ -93,5 +93,5 @@ def replace_api(request):
             else:
                 return jsonify({"message": "File not found on the File Server."}), 404
         else:
-            return jsonify({"message": "You don't have permission to access this api."}), 404
+            return jsonify({"message": "You don't have permission to access this API."}), 404
     return make_response(api_data_check, 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})

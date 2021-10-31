@@ -6,7 +6,7 @@ def makedir(path):
         if not os.path.exists(path):
             os.mkdir(path)
     except FileExistsError:
-        print("File allready exist.")
+        print("File already exist.")
 
 def create_directory_structure(create_file_structure):
     if not create_file_structure:
