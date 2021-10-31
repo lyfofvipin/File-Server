@@ -1,6 +1,6 @@
 import secrets, os, time
 from flask import render_template, url_for, flash, redirect, request, send_from_directory
-from src.forms import RegistrationForm, LoginForm, UpdateAccount
+from src.forms import RegistrationForm, LoginForm, UpdateAccount, ChangePasswordForm
 from src.models import User
 from src import *
 from flask_login import login_user, current_user, logout_user, login_required
@@ -60,6 +60,23 @@ def login():
         else:
             flash("Login Unsuccessfull, Please check Username or Password", "danger")
     return render_template("login.html", title="File Server | LOGIN", form = form, allow_registractions=allow_registractions)
+
+
+@app.route("/change-password", methods=['GET', 'POST'])
+def change_password():
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+         user = User.query.filter_by(username=form.username.data).first()
+         if user and bcrypt.check_password_hash(user.password, form.old_password.data):
+            if form.validate_on_submit():
+                hashed_password = bcrypt.generate_password_hash(form.new_password.data).decode('utf-8')
+                user.password = hashed_password
+                db.session.commit()
+                flash(f'Password changed for {form.username.data}', 'success')
+                return redirect(url_for('login'))
+         else:
+            flash("Username or Password is wrong", "danger")
+    return render_template("password_change.html", title="File Server | PASSWORD CHANGE", form = form)
 
 @app.route("/logout")
 def logout():
@@ -173,6 +190,31 @@ def replace_file():
                 return render_template("replace.html", title="File Server | Replace File", ask_for_file=True)
         else:
             return render_template("replace.html", title="File Server | Replace File", ask_for_file=True)
+
+@app.route("/delete", methods=["GET", "POST"])
+@login_required
+def delete_file():
+    available_files = []
+    if current_user.role:
+        if request.method == "POST":
+            try:
+                file_to_delete = request.form['file_to_delete']
+                if not file_to_delete:
+                    flash(f'Enter file name needs to be deleted.', 'danger')
+                    return render_template("delete.html", title="File Server | Delete File", ask_for_file=True)
+                available_files = find_files(file_to_delete, result_base_dir_path)
+            except KeyError :
+                file_path = os.path.join(result_base_dir_path, request.form['available_file'])
+                os.remove(file_path)
+                flash(f'File Deleted.', 'success')
+            if available_files:
+                flash(f'File Found. Press Delete to delete the file', 'success')
+                return render_template("delete.html", title="File Server | Replace File", available_files=available_files)
+            else:
+                flash("File Not Found, Please check the file name and try again.", "danger")
+                return render_template("delete.html", title="File Server | Replace File", ask_for_file=True)
+        else:
+            return render_template("delete.html", title="File Server | Replace File", ask_for_file=True)
 
 @app.errorhandler(404)
 def error_404(error):
