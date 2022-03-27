@@ -1,4 +1,4 @@
-from src import app, Product_Versions, config_dir, result_base_dir_path, create_file_structure, port
+from src import app, Product_Versions, config_dir, result_base_dir_path, create_file_structure, port, skip_product_version_creation_for_products
 import os
 
 def makedir(path):
@@ -14,7 +14,10 @@ def create_directory_structure(create_file_structure):
     for product in config_dir.keys():
         makedir(os.path.join(result_base_dir_path, product))
         for version in Product_Versions:
-            makedir(os.path.join(result_base_dir_path, product, version))
+            if "*" in skip_product_version_creation_for_products or product in skip_product_version_creation_for_products:
+                version = ""
+            else:
+                makedir(os.path.join(result_base_dir_path, product, version))
             for sub_version in config_dir[product].keys():
                 if sub_version: 
                     makedir(os.path.join(result_base_dir_path, product, version, sub_version))
