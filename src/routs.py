@@ -151,7 +151,7 @@ def upload_file():
                     message, flag = message + file_name + ' is not Supported.\n', False
             flash(message, 'success' if flag else 'danger')
             return redirect(url_for('home'))
-        return render_template("upload.html", title="File Server | Upload", Product_Versions=Product_Versions, config_dir=config_dir)
+        return render_template("upload.html", title="File Server | Upload", Product_Versions=Product_Versions, config_dir=config_dir, skip_product_version_creation_for_products=skip_product_version_creation_for_products)
     else:
         return render_template("403.html", title="File Server | ERROR"), 403
 
