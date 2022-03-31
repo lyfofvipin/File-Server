@@ -144,6 +144,22 @@ function clear_values_on_submit(){
 
 }
 
+function display_versions(){
+    var product = document.getElementById('product').value
+    var version = document.getElementById('version')
+    if ( skip_product_version_creation_for_products.includes(product) || skip_product_version_creation_for_products.includes("*") ){
+        version.classList.add('display-hidden')
+        remove_all_objects('version')
+    }
+    else{
+        remove_all_objects('version')
+        insertValue('version', Product_Versions)
+        version.classList.remove('display-hidden')
+        return true
+    }
+}
+
 // Setup Products select element Values in WUI
 insertValue('product', config_dir)
 update_values_on_select('product_call')
+display_versions()

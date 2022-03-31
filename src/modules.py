@@ -1,5 +1,5 @@
 import os
-from src import supported_file_extension
+from src import supported_file_extension, skip_product_version_creation_for_products, config_dir
 
 def list_dirs(result_base_dir_path):
     for files in os.listdir(result_base_dir_path):

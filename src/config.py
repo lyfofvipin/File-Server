@@ -28,6 +28,7 @@ config_dir = {
 }
 
 Product_Versions = ["01", "02"]
+skip_product_version_creation_for_products = []
 supported_file_extension = ["xml", "gz"]
 result_base_dir_path = "/home/result_files/"
 open_in_browser = False

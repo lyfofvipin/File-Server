@@ -10,7 +10,30 @@ The work of this app is very simple It let you Upload, download and Replace File
 In our case my teams are working in different regions across the globe so we need to share some result files with the developers and tester so we use it's WUI to share files with them,. In our Automaton we use it's CLI feature to pass the flags and Perform operations on the files. App has API's those are running on the Server so user can hit them also for Uploading and Downloading files.
 
 
-## Deployment Step
+# Deployment Step
+## Want to customise some fields
+File-Server has it's own default settings but you can change them according to your use case.
+all the settings are saved in a file name as [config.py](https://github.com/vipin3699/File-Server/blob/master/src/config.py)
+Here a few settings you can change.
+
+`config_dir` --> This looks like a simple Python dictatory but it plays a very vital role in File-Server. So the backend code check this variable and create a similar folder structure in the system. ( This make the process bit faster as It do not need to setup any database for the files )
+
+`port` --> This variable's value is used to decide that on which port of the system will be use by File-Server
+
+`supported_file_extension` --> This is a list that contains the extensions that will be allowed by the file-server. ( like by default it has only `xml` and `gz` ) if left blank `[]` It will allow all type of files.
+
+`result_base_dir_path` --> This is a string where File-Server store all the files and create all dictatory on the basic of `config_dir` you can update it's value if you want to use some another dictatory.
+
+`open_in_browser`  --> By default File-Server directly download all type of files. But there are some files like `.text`, `.pdf` those can directly be opened in a browser so You can set it's value to `False` if you want to open then in browser for you.
+
+`create_file_structure` --> So File-Server create a similar directory structure as `config_dir` but if you don't want that to happen you can just set it's value to `False`.
+
+`skip_product_version_creation_for_products` --> This variable has 3 supported values. `[]` `empty list` means no changes, `["*"]` `"*"` a string with a `*` means during File-Server directory creation deployment process will not create Product versions for any projects, `["xyz product", "abc product"]` a list of products In this case during File-Server directory creation deployment process will not create Product versions for the given projects.
+
+`allow_registractions`  --> This Option will enable and disable the registrations if True then File-Server will allow you to register new users, If False it won't open the `/register` url anymore.
+\
+\
+\
 To deploy the app you can run this [script](https://github.com/vipin3699/File-Server/blob/master/deploy_on_host.sh) or if you want to deploy on container then use this [script](https://github.com/vipin3699/File-Server/blob/master/deploy_in_container.sh).
 `Note: By default File-Server run on port 5000`
 
@@ -98,7 +121,7 @@ Once you are done with CLI setup command update the `Fs_Host` value in file `/us
 Help for the command `file-server`
 
 ```
-[vipikuma@kvy File-Server]$ file_server 
+[vipin3699@kvy File-Server]$ file_server 
 Hitting API's at : http://localhost:5000/api
 Usage: file_server [OPTIONS] COMMAND [ARGS]...
 
@@ -113,7 +136,7 @@ Commands:
 
 Help for `download` Command:
 ```
-[vipikuma@kvy File-Server]$ file_server download --help
+[vipin3699@kvy File-Server]$ file_server download --help
 Hitting API's at : http://localhost:5000/api
 Usage: file_server download [OPTIONS]
 
@@ -137,7 +160,7 @@ Options:
 Help for `upload` Command:
 
 ```
-[vipikuma@kvy File-Server]$ file_server upload --help
+[vipin3699@kvy File-Server]$ file_server upload --help
 Hitting API's at : http://localhost:5000/api
 Usage: file_server upload [OPTIONS]
 
@@ -160,7 +183,7 @@ Options:
 Help for `replace` Command:
 
 ```
-[vipikuma@kvy File-Server]$ file_server replace --help
+[vipin3699@kvy File-Server]$ file_server replace --help
 Hitting API's at : http://localhost:5000/api
 Usage: file_server replace [OPTIONS]
 
@@ -190,7 +213,7 @@ Note: *I have export the username and passwords as Shell Environment Variables s
 #### Listing and Downloading files:
 Listing all Products:
 ```
-[vipikuma@kvy File-Server]$ file_server download
+[vipin3699@kvy File-Server]$ file_server download
 Hitting API's at : http://localhost:5000/api
 {
   "aviable_data_on_path": [
@@ -203,7 +226,7 @@ Hitting API's at : http://localhost:5000/api
 
 Listing files of a specific Product:
 ```
-[vipikuma@kvy File-Server]$ file_server download --product Product1
+[vipin3699@kvy File-Server]$ file_server download --product Product1
 Hitting API's at : http://localhost:5000/api
 '{
   "aviable_data_on_path": [
@@ -215,7 +238,7 @@ Hitting API's at : http://localhost:5000/api
 
 Listing files of a specific Product Version:
 ```
-[vipikuma@kvy File-Server]$ file_server download --product Product1 --version 02
+[vipin3699@kvy File-Server]$ file_server download --product Product1 --version 02
 Hitting API's at : http://localhost:5000/api
 {
   "aviable_data_on_path": [
@@ -227,7 +250,7 @@ Hitting API's at : http://localhost:5000/api
 
 Listing files of a specific Sub Product:
 ```
-[vipikuma@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 
+[vipin3699@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 
 Hitting API's at : http://localhost:5000/api
 {
   "aviable_data_on_path": [
@@ -241,7 +264,7 @@ Hitting API's at : http://localhost:5000/api
 
 Listing files of a specific Category:
 ```
-[vipikuma@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 --category category4
+[vipin3699@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 --category category4
 Hitting API's at : http://localhost:5000/api
 {
   "aviable_data_on_path": [
@@ -258,7 +281,7 @@ Listing files of a specific Sub Category:
 If you don't have any files on given values it will return a blank string.
 
 ```
-[vipikuma@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 --category category4 --sub_category sub_category_3
+[vipin3699@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 --category category4 --sub_category sub_category_3
 Hitting API's at : http://localhost:5000/api
 {
   "aviable_data_on_path": []
@@ -266,7 +289,7 @@ Hitting API's at : http://localhost:5000/api
 ```
 
 ```
-[vipikuma@kvy File-Server]$ file_server download --product Product1 --version 01 --sub_prod Sub_Product1 --category category1 --sub_category sub_category_1
+[vipin3699@kvy File-Server]$ file_server download --product Product1 --version 01 --sub_prod Sub_Product1 --category category1 --sub_category sub_category_1
 Hitting API's at : http://localhost:5000/api
 {
   "aviable_data_on_path": [
@@ -278,7 +301,7 @@ Hitting API's at : http://localhost:5000/api
 
 Downloading files from the File Server:
 ```
-[vipikuma@kvy File-Server]$ file_server download --product Product1 --version 01 --sub_prod Sub_Product1 --category category1 --sub_category sub_category_1 --file test_file.gz
+[vipin3699@kvy File-Server]$ file_server download --product Product1 --version 01 --sub_prod Sub_Product1 --category category1 --sub_category sub_category_1 --file test_file.gz
 Hitting API's at : http://localhost:5000/api
 Downloading......
 test_file.gz
@@ -289,7 +312,7 @@ Download Compleat
 
 Uploading files to a specific Product:
 ```
-[vipikuma@kvy File-Server]$ file_server upload --product Product1 --file file1.xml
+[vipin3699@kvy File-Server]$ file_server upload --product Product1 --file file1.xml
 Hitting API's at : http://localhost:5000/api
 Uploading......
 file1.xml
@@ -300,7 +323,7 @@ file1.xml
 
 Uploading files to a specific Product Version:
 ```
-[vipikuma@kvy File-Server]$ file_server upload --product Product1 --version 01 --file file1.xml
+[vipin3699@kvy File-Server]$ file_server upload --product Product1 --version 01 --file file1.xml
 Hitting API's at : http://localhost:5000/api
 Uploading......
 file1.xml
@@ -311,7 +334,7 @@ file1.xml
 
 Uploading files to a specific Sub Product:
 ```
-[vipikuma@kvy File-Server]$ file_server upload --product Product1 --version 01 --sub_prod Sub_Product2 --file file1.xml
+[vipin3699@kvy File-Server]$ file_server upload --product Product1 --version 01 --sub_prod Sub_Product2 --file file1.xml
 Hitting API's at : http://localhost:5000/api
 Uploading......
 file1.xml
@@ -333,7 +356,7 @@ file1.xml
 
 Uploading files to a specific Sub Category:
 ```
-[vipikuma@kvy File-Server]$ file_server upload --product Product1 --version 01 --sub_prod Sub_Product1 --category category3 --sub_category sub_category_3 --file file1.xml
+[vipin3699@kvy File-Server]$ file_server upload --product Product1 --version 01 --sub_prod Sub_Product1 --category category3 --sub_category sub_category_3 --file file1.xml
 Hitting API's at : http://localhost:5000/api
 Uploading......
 file1.xml
@@ -344,7 +367,7 @@ file1.xml
 
 Uploading multiple files:
 ```
-file_server upload --product Product1 --version 01 -U vipikuma -P test -f file1.xml -f file2.xml -f file3.xml
+file_server upload --product Product1 --version 01 -U vipin3699 -P test -f file1.xml -f file2.xml -f file3.xml
 Hitting API's at : http://localhost:5000/api
 Uploading...... 
 file1.xml
@@ -432,7 +455,7 @@ Replacing File if multiple files available on the server:
 
 In such kind of scenario you need to pass 
 ```
-[vipikuma@kvy File-Server]$ file_server replace --old_file file1.xml --file_name file2.xml 
+[vipin3699@kvy File-Server]$ file_server replace --old_file file1.xml --file_name file2.xml 
 Hitting API's at : http://localhost:5000/api
 Replacing file2.xml ....
 {
@@ -448,7 +471,7 @@ Replacing file2.xml ....
 
 Using __file_number__ to replace a specific file:
 ```
-[vipikuma@kvy File-Server]$ file_server replace --old_file file1.xml --file_number 5 --file_name file2.xml 
+[vipin3699@kvy File-Server]$ file_server replace --old_file file1.xml --file_number 5 --file_name file2.xml 
 Hitting API's at : http://localhost:5000/api
 Replacing file2.xml ....
 {
@@ -457,7 +480,7 @@ Replacing file2.xml ....
 ```
 
 ```
-[vipikuma@kvy File-Server]$ file_server replace --old_file file1.xml --file_name file2.xml 
+[vipin3699@kvy File-Server]$ file_server replace --old_file file1.xml --file_name file2.xml 
 Hitting API's at : http://localhost:5000/api
 Replacing file2.xml ....
 {
@@ -472,7 +495,7 @@ Replacing file2.xml ....
 
 If you only have 1 file available then it will auto replace that file without __file_number__ parameter.
 ```
-[vipikuma@kvy File-Server]$ file_server replace --old_file file2.xml --file_name file3.xml 
+[vipin3699@kvy File-Server]$ file_server replace --old_file file2.xml --file_name file3.xml 
 Hitting API's at : http://localhost:5000/api
 Replacing file3.xml ....
 {
@@ -482,32 +505,12 @@ Replacing file3.xml ....
 
 If the file is not on the FileServer:
 ```
-[vipikuma@kvy File-Server]$ file_server replace --old_file file8.xml --file_name file3.xml 
+[vipin3699@kvy File-Server]$ file_server replace --old_file file8.xml --file_name file3.xml 
 Hitting API's at : http://localhost:5000/api
 Replacing file3.xml ....
 {
   "message": "File not found on the File Server."
 }
 ```
-
-
-## Want to customise some fields
-File-Server has it's own default settings but you can change them according to your use case.
-all the settings are saved in a file name as [config.py](https://github.com/vipin3699/File-Server/blob/master/src/config.py)
-Here a few settings you can change.
-
-`config_dir` --> This looks like a simple Python dictatory but it plays a very vital role in File-Server. So the backend code check this variable and create a similar folder structure in the system. ( This make the process bit faster as It do not need to setup any database for the files )
-
-`port` --> This variable's value is used to decide that on which port of the system will be use by File-Server
-
-`supported_file_extension` --> This is a list that contains the extensions that will be allowed by the file-server. ( like by default it has only `xml` and `gz` ) if left blank `[]` It will allow all type of files.
-
-`result_base_dir_path` --> This is a string where File-Server store all the files and create all dictatory on the basic of `config_dir` you can update it's value if you want to use some another dictatory.
-
-`open_in_browser`  --> By default File-Server directly download all type of files. But there are some files like `.text`, `.pdf` those can directly be opened in a browser so You can set it's value to `False` if you want to open then in browser for you.
-
-`create_file_structure` --> So File-Server create a similar directory structure as `config_dir` but if you don't want that to happen you can just set it's value to `False`.
-
-`allow_registractions`  --> This Option will enable and disable the registrations if True then File-Server will allow you to register new users, If False it won't open the `/register` url anymore.
 
 **EOF**

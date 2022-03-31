@@ -2,18 +2,16 @@
 {% block content %}
 <script>
     var config_dir = JSON.parse("{{ config_dir }}".replaceAll('&#39;', '"'))
+    var Product_Versions = "{{ Product_Versions }}".replaceAll("&#39;", "").replaceAll('"', '').replaceAll("[", "").replaceAll("]", "").split(", ")
+    var skip_product_version_creation_for_products = "{{ skip_product_version_creation_for_products }}".replaceAll("&#39;", "").replaceAll('"', '').replaceAll("[", "").replaceAll("]", "").split(", ")
 </script>
 <div class="content-section">
     <p>Upload file page</p>
     <form action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data">
         <legend class="border-bottom mb-4">Upload File</legend>
-        <select class="custom-select custom-select-sm mb-3" onclick="update_values_on_select(call_product='call_product', call_sub_product='', call_category='', call_sub_category='');" id="product" name="product">
+        <select class="custom-select custom-select-sm mb-3" onclick="update_values_on_select(call_product='call_product', call_sub_product='', call_category='', call_sub_category=''), display_versions();" id="product" name="product">
         </select>
-        <select class="custom-select custom-select-sm mb-3" id="version" name="version">
-            {% for version in Product_Versions %}
-                <option name="{{ version }}" value="{{ version }}">{{ version }}</option>
-            {% endfor %}
-        </select>
+        <select class="custom-select custom-select-sm mb-3 display-hidden" onclick="display_versions();" id="version" name="version"></select>
         <select class="custom-select custom-select-sm mb-3 display-hidden" onclick="update_values_on_select(call_product='', call_sub_product='call_sub_product', call_category='', call_sub_category='');" id="sub_prod" name="sub_prod">
         </select>
         <select class="custom-select custom-select-sm mb-3 display-hidden" onclick="update_values_on_select(call_product='', call_sub_product='', call_category='call_category', call_sub_category='');" id="category" name="category">
