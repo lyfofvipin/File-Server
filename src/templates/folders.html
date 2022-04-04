@@ -7,6 +7,7 @@
         {% for dir_file in folder_content %}
         <h3><a class="article-title" href="{{url_for('file_and_folders', next_url= join(next_url,dir_file[0]))}}">{{ dir_file[0] }}</a></h3>
         <p class="article-content">{{ dir_file[1] }}</p>
+        <p class="article-content">{{ dir_file[2] | safe }}</p>
         {% endfor %}
         </div>
     </article>

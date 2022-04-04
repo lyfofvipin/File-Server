@@ -4,7 +4,7 @@ from src.forms import RegistrationForm, LoginForm, UpdateAccount, ChangePassword
 from src.models import User
 from src import *
 from flask_login import login_user, current_user, logout_user, login_required
-from src.modules import list_dirs, file_validater, get_value, find_files
+from src.modules import list_dirs, file_validater, get_value, find_files, get_the_description, set_the_description
 from src.apis import home_page_api, download_api, upload_api, replace_api
 import markdown
 
@@ -116,6 +116,8 @@ def file_and_folders(next_url):
     path = os.path.join(result_base_dir_path, next_url)
     if os.path.isdir(path):
         folder_content = [(folder, time.ctime(os.path.getmtime(os.path.join(path, folder)))) for folder in os.listdir(path)]
+        folder_content = [ x for x in folder_content if not x[0].startswith(".") ]
+        folder_content = [ [x[0], x[1], y] for x,y in zip(folder_content, get_the_description(path, folder_content)) ]
         return render_template("folders.html", folder_content=folder_content, next_url=next_url, join=os.path.join)
     else:
         folder_path, file_path = "/".join(path.split("/")[:-1]), path.split('/')[-1]
@@ -130,7 +132,7 @@ def upload_file():
     message, flag = " ", True
     if current_user.role:
         if request.method == "POST":
-            product, sub_category, version, category, sub_prod = request.form.get('product'), request.form.get('sub_category'), request.form.get('version'), request.form.get('category'), request.form.get('sub_prod')
+            product, sub_category, version, category, sub_prod, comment = request.form.get('product'), request.form.get('sub_category'), request.form.get('version'), request.form.get('category'), request.form.get('sub_prod'), request.form.get('comment')
             file_name = request.files['file_to_upload'].filename
             if not file_name:
                 flash(f'Select a File to Upload.', 'danger')
@@ -143,6 +145,7 @@ def upload_file():
                         if os.path.exists(file_path):
                             message, flag = message + file_name + ' is allready on the server.\n', False
                         else:
+                            set_the_description(file_path, file_name, comment)
                             request.files['file_to_upload'].save(file_path)
                             message += file_name + " Uploaded successfully.\n"
                     else:
@@ -168,7 +171,7 @@ def replace_file():
                     return render_template("replace.html", title="File Server | Replace File", ask_for_file=True)
                 available_files = find_files(file_to_replace, result_base_dir_path)
             except KeyError :
-                file_name = request.files.get('file_to_upload').filename
+                file_name, comment = request.files.get('file_to_upload').filename, request.form['comment']
                 if not file_name:
                     flash(f'Select a File to Upload.', 'danger')
                     return render_template("replace.html", title="File Server | Replace File", ask_for_file=True)
@@ -177,6 +180,7 @@ def replace_file():
                     os.remove(file_path)
                     file_path = "/".join(file_path.split("/")[:-1])
                     file_path = os.path.join(file_path, file_name)
+                    set_the_description(file_path, file_name, comment)
                     request.files['file_to_upload'].save(file_path)
                     flash(f'File Replaced successfully.', 'success')
                 else:

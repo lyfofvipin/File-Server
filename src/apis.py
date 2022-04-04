@@ -1,7 +1,7 @@
 import os
 from flask import jsonify, request, send_from_directory, make_response
 from src import app, db, result_base_dir_path, config_dir, bcrypt
-from src.modules import list_dirs, file_validater, get_value, find_files
+from src.modules import list_dirs, file_validater, get_value, find_files, set_the_description, get_the_description
 from src.models import User
 
 def api_data_validator(request):
@@ -29,8 +29,9 @@ def download_api(request):
         product, version, sub_prod, sub_category, category, file_name = request.args.get('product'), request.args.get('version'), request.args.get('sub_prod'), request.args.get('sub_category'), request.args.get('category'), request.args.get('file')
         path = os.path.join(result_base_dir_path, get_value(product), get_value(version), get_value(sub_prod), get_value(category), get_value(sub_category))
         if os.path.isdir(path) and not file_name:
-            files = [ x for x in os.listdir(path) if x != "site.db"]
-            return jsonify({"aviable_data_on_path": files})
+            files = [ x for x in os.listdir(path) if x != "site.db" and not x.startswith(".")]
+            files = { x:y for x,y in zip(files, get_the_description(path, files, called_from="api")) }
+            return jsonify({"aviable_data_on_path in formet 'file_name': 'file_comments'": files})
         elif os.path.exists(path):
             return send_from_directory(path, file_name, as_attachment=True)
         else:
@@ -42,7 +43,7 @@ def upload_api(request):
     api_data_check = api_data_validator(request)
     if "Auth Verified." in api_data_check:
         if api_data_check[-1]:
-            product, version, sub_prod, category, sub_category  = request.args.get('product'), request.args.get('version'), request.args.get('sub_prod'), request.args.get('category'), request.args.get('sub_category')
+            product, version, sub_prod, category, sub_category, comment  = request.args.get('product'), request.args.get('version'), request.args.get('sub_prod'), request.args.get('category'), request.args.get('sub_category'), request.args.get('comment')
             path = os.path.join(result_base_dir_path, get_value(product), get_value(version), get_value(sub_prod), get_value(category), get_value(sub_category))
             if 'file' not in request.files: return jsonify({'message' : 'No file part in the request'}), 404
             file = request.files['file']
@@ -52,6 +53,7 @@ def upload_api(request):
                 if os.path.exists(os.path.join(path, file.filename)):
                     return jsonify({'message' : 'This file is already on the server.'})
                 else:
+                    set_the_description(path, file.filename, comment)
                     file.save(os.path.join(path, file.filename))
                     return jsonify({'message' : 'File Uploaded successfully'})
             else:
@@ -67,7 +69,7 @@ def replace_api(request):
     if "Auth Verified." in api_data_check:
         if api_data_check[-1]:
             try:
-                file_to_replace, new_file , file_number = request.args["file_to_replace"], request.files['file'], request.args.get("file_number")
+                file_to_replace, new_file , file_number, comment = request.args["file_to_replace"], request.files['file'], request.args.get("file_number"), request.args.get("comment")
                 file_name = new_file.filename
                 available_files = find_files(file_to_replace, result_base_dir_path)
             except KeyError :
@@ -86,6 +88,7 @@ def replace_api(request):
                     os.remove(file_path)
                     file_path = "/".join(file_path.split("/")[:-1])
                     file_path = os.path.join(file_path, file_name)
+                    set_the_description(file_path, file_name, comment)
                     new_file.save(file_path)
                     return jsonify({"message": "File Replaced Successfully."})
                 else:
