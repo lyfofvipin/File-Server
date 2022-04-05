@@ -61,7 +61,6 @@ def login():
             flash("Login Unsuccessfull, Please check Username or Password", "danger")
     return render_template("login.html", title="File Server | LOGIN", form = form, allow_registractions=allow_registractions)
 
-
 @app.route("/change-password", methods=['GET', 'POST'])
 def change_password():
     form = ChangePasswordForm()
@@ -121,7 +120,10 @@ def file_and_folders(next_url):
         return render_template("folders.html", folder_content=folder_content, next_url=next_url, join=os.path.join)
     else:
         folder_path, file_path = "/".join(path.split("/")[:-1]), path.split('/')[-1]
-        return send_from_directory(folder_path, file_path, as_attachment= not open_in_browser)
+        if any([ x for x in extension_want_to_open if file_path.endswith(x) ]):
+            return send_from_directory(folder_path, file_path)
+        else:
+            return send_from_directory(folder_path, file_path, as_attachment=True)
 
 @app.route("/upload", methods=["GET", "POST"])
 @login_required
