@@ -24,7 +24,8 @@ Here a few settings you can change.
 
 `result_base_dir_path` --> This is a string where File-Server store all the files and create all dictatory on the basic of `config_dir` you can update it's value if you want to use some another dictatory.
 
-`open_in_browser`  --> By default File-Server directly download all type of files. But there are some files like `.text`, `.pdf` those can directly be opened in a browser so You can set it's value to `False` if you want to open then in browser for you.
+`extension_want_to_open`  --> By default File-Server directly download all type of files. But there are some files like `.text`, `.pdf` those can directly be opened in a browser.
+So if the value of this variable is kept `[]` it will download the files, or you can pass a list of extensions you want to be open in browser like this `["mp4"]`.
 
 `create_file_structure` --> So File-Server create a similar directory structure as `config_dir` but if you don't want that to happen you can just set it's value to `False`.
 
@@ -152,6 +153,7 @@ Options:
   -sp, --sub_prod TEXT      Pass Sub Product version, Value
   -c, --category TEXT       Pass Category Value
   -sc, --sub_category TEXT  Pass Sub Category Value
+  --comment TEXT            Pass the comments for the given file/files
   -f, --file TEXT           File name you want to download from the file
                             server.
   --help                    Show this message and exit.
@@ -201,7 +203,7 @@ Options:
   -fn, --file_number TEXT  This is a optional flag if there are multiple files
                            with the same name then you can use this to pass
                            the file number you want to replace.
-
+  --comment TEXT            Pass the comments for the given file/files
   --help                   Show this message and exit.
 ```
 
@@ -216,11 +218,12 @@ Listing all Products:
 [vipin3699@kvy File-Server]$ file_server download
 Hitting API's at : http://localhost:5000/api
 {
-  "aviable_data_on_path": [
-    "Product1", 
-    "Product3", 
-    "Product2"
-  ]
+  "aviable_data_on_path in formet 'file_name': 'file_comments'": {
+    "Product1": "", 
+    "Product2": "", 
+    "Product3": "", 
+    "Product4": ""
+  }
 }
 ```
 
@@ -228,11 +231,12 @@ Listing files of a specific Product:
 ```
 [vipin3699@kvy File-Server]$ file_server download --product Product1
 Hitting API's at : http://localhost:5000/api
-'{
-  "aviable_data_on_path": [
-    "02", 
-    "01"
-  ]
+{
+  "aviable_data_on_path in formet 'file_name': 'file_comments'": {
+    "01": "", 
+    "02": "", 
+    "test1.xml": "Test Comment for the file"
+  }
 }
 ```
 
@@ -241,10 +245,12 @@ Listing files of a specific Product Version:
 [vipin3699@kvy File-Server]$ file_server download --product Product1 --version 02
 Hitting API's at : http://localhost:5000/api
 {
-  "aviable_data_on_path": [
-    "Sub_Product1", 
-    "Sub_Product2"
-  ]
+  "aviable_data_on_path in formet 'file_name': 'file_comments'": {
+    "Sub_Product1": "", 
+    "Sub_Product2": "", 
+    "category1": "", 
+    "category2": ""
+  }
 }
 ```
 
@@ -253,12 +259,12 @@ Listing files of a specific Sub Product:
 [vipin3699@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 
 Hitting API's at : http://localhost:5000/api
 {
-  "aviable_data_on_path": [
-    "category3", 
-    "category4", 
-    "category2", 
-    "category1"
-  ]
+  "aviable_data_on_path in formet 'file_name': 'file_comments'": {
+    "category1": "", 
+    "category2": "", 
+    "category3": "", 
+    "category4": ""
+  }
 }
 ```
 
@@ -267,12 +273,9 @@ Listing files of a specific Category:
 [vipin3699@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 --category category4
 Hitting API's at : http://localhost:5000/api
 {
-  "aviable_data_on_path": [
-    "sub_category_2", 
-    "sub_category_3", 
-    "sub_category_1", 
-    "sub_category_4"
-  ]
+  "aviable_data_on_path in formet 'file_name': 'file_comments'": {
+    "sub_category_1": ""
+  }
 }
 ```
 
@@ -281,10 +284,10 @@ Listing files of a specific Sub Category:
 If you don't have any files on given values it will return a blank string.
 
 ```
-[vipin3699@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 --category category4 --sub_category sub_category_3
+[vipin3699@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 --category category4 --sub_category sub_category_1
 Hitting API's at : http://localhost:5000/api
 {
-  "aviable_data_on_path": []
+  "aviable_data_on_path in formet 'file_name': 'file_comments'": {}
 }
 ```
 
@@ -293,8 +296,8 @@ Hitting API's at : http://localhost:5000/api
 Hitting API's at : http://localhost:5000/api
 {
   "aviable_data_on_path": [
-    "file1.xml.gz", 
-    "test_file.gz"
+    "test1.xml": "Test Comment for the file1",
+    "test2.xml": "Test Comment for the file2"
   ]
 }
 ```
@@ -313,6 +316,17 @@ Download Compleat
 Uploading files to a specific Product:
 ```
 [vipin3699@kvy File-Server]$ file_server upload --product Product1 --file file1.xml
+Hitting API's at : http://localhost:5000/api
+Uploading......
+file1.xml
+{
+  "message": "File Uploaded successfully"
+}
+```
+
+Uploading files with a comment Product:
+```
+[vipin3699@kvy File-Server]$ file_server upload --product Product1 --file file1.xml --comment "This is the test comment added to file1"
 Hitting API's at : http://localhost:5000/api
 Uploading......
 file1.xml
@@ -496,6 +510,16 @@ Replacing file2.xml ....
 If you only have 1 file available then it will auto replace that file without __file_number__ parameter.
 ```
 [vipin3699@kvy File-Server]$ file_server replace --old_file file2.xml --file_name file3.xml 
+Hitting API's at : http://localhost:5000/api
+Replacing file3.xml ....
+{
+  "message": "File Replaced Successfully."
+}
+```
+
+Replacing the file with updating the comment.
+```
+[vipin3699@kvy File-Server]$ file_server replace --old_file file2.xml --file_name file3.xml --comment "This is the test comment added to file3" 
 Hitting API's at : http://localhost:5000/api
 Replacing file3.xml ....
 {
