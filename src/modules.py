@@ -3,6 +3,7 @@ from src import supported_file_extension
 convert_to_url = lambda x : '<a href="{0}">{1}</a>'.format(x,x)
 description_file_name = ".file_server/{0}.text"
 description_dir_name = ".file_server"
+if_none_then_empty_str = lambda x : x if x else ""
 
 
 def list_dirs(result_base_dir_path):

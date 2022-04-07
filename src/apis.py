@@ -1,7 +1,7 @@
 import os
 from flask import jsonify, request, send_from_directory, make_response
 from src import app, db, result_base_dir_path, config_dir, bcrypt
-from src.modules import list_dirs, file_validater, get_value, find_files, set_the_description, get_the_description
+from src.modules import list_dirs, file_validater, get_value, find_files, set_the_description, get_the_description, if_none_then_empty_str
 from src.models import User
 
 def api_data_validator(request):
@@ -43,7 +43,7 @@ def upload_api(request):
     api_data_check = api_data_validator(request)
     if "Auth Verified." in api_data_check:
         if api_data_check[-1]:
-            product, version, sub_prod, category, sub_category, comment  = request.args.get('product'), request.args.get('version'), request.args.get('sub_prod'), request.args.get('category'), request.args.get('sub_category'), request.args.get('comment')
+            product, version, sub_prod, category, sub_category, comment, need_url  = request.args.get('product'), request.args.get('version'), request.args.get('sub_prod'), request.args.get('category'), request.args.get('sub_category'), request.args.get('comment'), request.args.get('need_url')
             path = os.path.join(result_base_dir_path, get_value(product), get_value(version), get_value(sub_prod), get_value(category), get_value(sub_category))
             if 'file' not in request.files: return jsonify({'message' : 'No file part in the request'}), 404
             file = request.files['file']
@@ -53,9 +53,13 @@ def upload_api(request):
                 if os.path.exists(os.path.join(path, file.filename)):
                     return jsonify({'message' : 'This file is already on the server.'})
                 else:
+                    comment = comment if comment else ""
                     set_the_description(path, file.filename, comment)
                     file.save(os.path.join(path, file.filename))
-                    return jsonify({'message' : 'File Uploaded successfully'})
+                    if need_url:
+                        return os.path.join("/home/", if_none_then_empty_str(product), if_none_then_empty_str(version), if_none_then_empty_str(sub_prod), if_none_then_empty_str(category), if_none_then_empty_str(sub_category), if_none_then_empty_str(file.filename))
+                    else:
+                        return jsonify({'message' : 'File Uploaded successfully'})
             else:
                 return jsonify({'Message' : 'Looks like you entered something wrong. Please try again.',
                 "Supported Version": config_dir}), 404

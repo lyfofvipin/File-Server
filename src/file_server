@@ -8,7 +8,6 @@ Fs_Host = "http://localhost:5000"
 FileServerUrl = Fs_Host + "/api"
 config = {}
 
-print("Hitting API's at : " + FileServerUrl)
 def set_config(password = "", username = ""):
     global config
     if os.environ.get("FS_PASSWORD") and os.environ.get("FS_USERNAME"):
@@ -57,8 +56,9 @@ def download(password, username, product, version, sub_prod, category, sub_categ
 @click.option("--category","-c", help="Pass Category value")
 @click.option("--sub_category", "-sc",  help="Pass Sub Category value")
 @click.option("--comment",  help="Pass the comments for the given file/files")
+@click.option("--need_url",  help="If true then it will only return the url where the file is uploaded")
 @click.option("--file", "-f", multiple=True, help="file you want to upload on The File-Server")
-def upload(password, username, product, version, sub_prod, category, sub_category, comment, file):
+def upload(password, username, product, version, sub_prod, category, sub_category, comment, file, need_url):
     """
         This option is use to upload files.
     """
@@ -68,13 +68,13 @@ def upload(password, username, product, version, sub_prod, category, sub_categor
 
     FileServerUrl = os.path.join(FileServerUrl, "upload")
     for file_name in [ x.split("/")[-1] for x in file]:
-        parameters = {'product': product, 'version': version, 'category':category, 'sub_prod':sub_prod, 'sub_category':sub_category, 'file': file_name, 'comment': comment}
+        parameters = {'product': product, 'version': version, 'category':category, 'sub_prod':sub_prod, 'sub_category':sub_category, 'file': file_name, 'comment': comment, 'need_url': need_url}
         if file_name:
             if not os.path.exists(file_name):
                 print("File path is not valid.")
                 exit(1)
             with open(file_name, "rb") as file_to_upload:
-                print("Uploading...... \n" + file_name)
+                if not need_url : print("Uploading...... \n" + file_name)
                 content = {'file': (file_name, file_to_upload.read())}
                 req = requests.post(FileServerUrl, params=parameters, auth=(config.get('username'), config.get('password')), files=content)
                 print(req.text)
