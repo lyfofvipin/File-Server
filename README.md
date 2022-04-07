@@ -123,7 +123,6 @@ Help for the command `file-server`
 
 ```
 [vipin3699@kvy File-Server]$ file_server 
-Hitting API's at : http://localhost:5000/api
 Usage: file_server [OPTIONS] COMMAND [ARGS]...
 
 Options:
@@ -138,7 +137,6 @@ Commands:
 Help for `download` Command:
 ```
 [vipin3699@kvy File-Server]$ file_server download --help
-Hitting API's at : http://localhost:5000/api
 Usage: file_server download [OPTIONS]
 
   This option is use to download files.
@@ -163,7 +161,6 @@ Help for `upload` Command:
 
 ```
 [vipin3699@kvy File-Server]$ file_server upload --help
-Hitting API's at : http://localhost:5000/api
 Usage: file_server upload [OPTIONS]
 
   This option is use to upload files.
@@ -178,6 +175,7 @@ Options:
   -sp, --sub_prod TEXT      Pass Sub Product version
   -c, --category TEXT       Pass Category value
   -sc, --sub_category TEXT  Pass Sub Category value
+  --need_url TEXT  If true then it will only return the url where the file is uploaded
   -f, --file TEXT           file you want to upload on The File-Server
   --help                    Show this message and exit.
 ```
@@ -186,7 +184,6 @@ Help for `replace` Command:
 
 ```
 [vipin3699@kvy File-Server]$ file_server replace --help
-Hitting API's at : http://localhost:5000/api
 Usage: file_server replace [OPTIONS]
 
   This option is use to replace a file on the File Server.
@@ -216,7 +213,6 @@ Note: *I have export the username and passwords as Shell Environment Variables s
 Listing all Products:
 ```
 [vipin3699@kvy File-Server]$ file_server download
-Hitting API's at : http://localhost:5000/api
 {
   "aviable_data_on_path in formet 'file_name': 'file_comments'": {
     "Product1": "", 
@@ -230,7 +226,6 @@ Hitting API's at : http://localhost:5000/api
 Listing files of a specific Product:
 ```
 [vipin3699@kvy File-Server]$ file_server download --product Product1
-Hitting API's at : http://localhost:5000/api
 {
   "aviable_data_on_path in formet 'file_name': 'file_comments'": {
     "01": "", 
@@ -243,7 +238,6 @@ Hitting API's at : http://localhost:5000/api
 Listing files of a specific Product Version:
 ```
 [vipin3699@kvy File-Server]$ file_server download --product Product1 --version 02
-Hitting API's at : http://localhost:5000/api
 {
   "aviable_data_on_path in formet 'file_name': 'file_comments'": {
     "Sub_Product1": "", 
@@ -257,7 +251,6 @@ Hitting API's at : http://localhost:5000/api
 Listing files of a specific Sub Product:
 ```
 [vipin3699@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 
-Hitting API's at : http://localhost:5000/api
 {
   "aviable_data_on_path in formet 'file_name': 'file_comments'": {
     "category1": "", 
@@ -271,7 +264,6 @@ Hitting API's at : http://localhost:5000/api
 Listing files of a specific Category:
 ```
 [vipin3699@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 --category category4
-Hitting API's at : http://localhost:5000/api
 {
   "aviable_data_on_path in formet 'file_name': 'file_comments'": {
     "sub_category_1": ""
@@ -285,7 +277,6 @@ If you don't have any files on given values it will return a blank string.
 
 ```
 [vipin3699@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 --category category4 --sub_category sub_category_1
-Hitting API's at : http://localhost:5000/api
 {
   "aviable_data_on_path in formet 'file_name': 'file_comments'": {}
 }
@@ -293,7 +284,6 @@ Hitting API's at : http://localhost:5000/api
 
 ```
 [vipin3699@kvy File-Server]$ file_server download --product Product1 --version 01 --sub_prod Sub_Product1 --category category1 --sub_category sub_category_1
-Hitting API's at : http://localhost:5000/api
 {
   "aviable_data_on_path": [
     "test1.xml": "Test Comment for the file1",
@@ -305,7 +295,6 @@ Hitting API's at : http://localhost:5000/api
 Downloading files from the File Server:
 ```
 [vipin3699@kvy File-Server]$ file_server download --product Product1 --version 01 --sub_prod Sub_Product1 --category category1 --sub_category sub_category_1 --file test_file.gz
-Hitting API's at : http://localhost:5000/api
 Downloading......
 test_file.gz
 Download Compleat
@@ -316,7 +305,6 @@ Download Compleat
 Uploading files to a specific Product:
 ```
 [vipin3699@kvy File-Server]$ file_server upload --product Product1 --file file1.xml
-Hitting API's at : http://localhost:5000/api
 Uploading......
 file1.xml
 {
@@ -327,7 +315,6 @@ file1.xml
 Uploading files with a comment Product:
 ```
 [vipin3699@kvy File-Server]$ file_server upload --product Product1 --file file1.xml --comment "This is the test comment added to file1"
-Hitting API's at : http://localhost:5000/api
 Uploading......
 file1.xml
 {
@@ -338,7 +325,6 @@ file1.xml
 Uploading files to a specific Product Version:
 ```
 [vipin3699@kvy File-Server]$ file_server upload --product Product1 --version 01 --file file1.xml
-Hitting API's at : http://localhost:5000/api
 Uploading......
 file1.xml
 {
@@ -346,10 +332,16 @@ file1.xml
 }
 ```
 
+Uploading files while using need_url flag:
+```
+[vipin3699@kvy File-Server]$ file_server upload --product Product1 --version 01 --file file1.xml
+/home/Product1/file1.xml
+```
+
+
 Uploading files to a specific Sub Product:
 ```
 [vipin3699@kvy File-Server]$ file_server upload --product Product1 --version 01 --sub_prod Sub_Product2 --file file1.xml
-Hitting API's at : http://localhost:5000/api
 Uploading......
 file1.xml
 {
@@ -360,7 +352,6 @@ file1.xml
 Uploading files to a specific Category:
 ```
 file_server upload --product Product1 --version 01 --sub_prod Sub_Product1 --category category3 --file file1.xml
-Hitting API's at : http://localhost:5000/api
 Uploading......
 file1.xml
 {
@@ -371,7 +362,6 @@ file1.xml
 Uploading files to a specific Sub Category:
 ```
 [vipin3699@kvy File-Server]$ file_server upload --product Product1 --version 01 --sub_prod Sub_Product1 --category category3 --sub_category sub_category_3 --file file1.xml
-Hitting API's at : http://localhost:5000/api
 Uploading......
 file1.xml
 {
@@ -382,7 +372,6 @@ file1.xml
 Uploading multiple files:
 ```
 file_server upload --product Product1 --version 01 -U vipin3699 -P test -f file1.xml -f file2.xml -f file3.xml
-Hitting API's at : http://localhost:5000/api
 Uploading...... 
 file1.xml
 {
@@ -406,7 +395,6 @@ file3.xml
 What if you miss some parameters like here I am trying to upload a file with wrong values.
 ```
 file_server upload --product Product1 --version 01 --sub_prod Sub_Product1 --sub_category sub_category_3 --file file1.xml
-Hitting API's at : http://localhost:5000/api
 Uploading......
 {
   "Message": "Looks like you enter something wrong. Please try again.", 
@@ -470,7 +458,6 @@ Replacing File if multiple files available on the server:
 In such kind of scenario you need to pass 
 ```
 [vipin3699@kvy File-Server]$ file_server replace --old_file file1.xml --file_name file2.xml 
-Hitting API's at : http://localhost:5000/api
 Replacing file2.xml ....
 {
   "Found multiple files, pass the `file_number` with which you want to replace the file from the given list: ": [
@@ -486,7 +473,6 @@ Replacing file2.xml ....
 Using __file_number__ to replace a specific file:
 ```
 [vipin3699@kvy File-Server]$ file_server replace --old_file file1.xml --file_number 5 --file_name file2.xml 
-Hitting API's at : http://localhost:5000/api
 Replacing file2.xml ....
 {
   "message": "File Replaced Successfully."
@@ -495,7 +481,6 @@ Replacing file2.xml ....
 
 ```
 [vipin3699@kvy File-Server]$ file_server replace --old_file file1.xml --file_name file2.xml 
-Hitting API's at : http://localhost:5000/api
 Replacing file2.xml ....
 {
   "Found multiple files, pass the `file_number` with which you want to replace the file from the given list: ": [
@@ -510,7 +495,6 @@ Replacing file2.xml ....
 If you only have 1 file available then it will auto replace that file without __file_number__ parameter.
 ```
 [vipin3699@kvy File-Server]$ file_server replace --old_file file2.xml --file_name file3.xml 
-Hitting API's at : http://localhost:5000/api
 Replacing file3.xml ....
 {
   "message": "File Replaced Successfully."
@@ -520,7 +504,6 @@ Replacing file3.xml ....
 Replacing the file with updating the comment.
 ```
 [vipin3699@kvy File-Server]$ file_server replace --old_file file2.xml --file_name file3.xml --comment "This is the test comment added to file3" 
-Hitting API's at : http://localhost:5000/api
 Replacing file3.xml ....
 {
   "message": "File Replaced Successfully."
@@ -530,7 +513,6 @@ Replacing file3.xml ....
 If the file is not on the FileServer:
 ```
 [vipin3699@kvy File-Server]$ file_server replace --old_file file8.xml --file_name file3.xml 
-Hitting API's at : http://localhost:5000/api
 Replacing file3.xml ....
 {
   "message": "File not found on the File Server."
