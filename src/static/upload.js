@@ -131,6 +131,7 @@ function clear_values_on_submit(){
     var sub_prod = document.getElementById('sub_prod')
     var category = document.getElementById('category')
     var sub_category = document.getElementById('sub_category')
+    var version = document.getElementById('version')
     
     if ( sub_prod.classList.contains("display-hidden") ){
         remove_all_objects("sub_prod")
@@ -141,7 +142,9 @@ function clear_values_on_submit(){
     if ( sub_category.classList.contains("display-hidden") ){
         remove_all_objects("sub_category")
     }
-
+    if ( version.classList.contains("display-hidden") ){
+        remove_all_objects("version")
+    }
 }
 
 function display_versions(){
