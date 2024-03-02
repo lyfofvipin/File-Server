@@ -1,4 +1,4 @@
-from src import db, login_manager
+from src import db, login_manager, app
 from flask_login import UserMixin
 
 
@@ -17,5 +17,6 @@ class User(db.Model, UserMixin):
     def __repr__(self):
         return "Name: " + self.username + " email: " + self.email + " Role: " + str(self.role)
 
-db.create_all()
-db.session.commit()
+with app.app_context():
+    db.create_all()
+    db.session.commit()
