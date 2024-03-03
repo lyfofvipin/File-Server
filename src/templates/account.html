@@ -51,6 +51,9 @@
                             {% endfor %}
                         {% endif %}
                     </div>
+                    <div class="form-group">
+                        <a href="{{ url_for('change_password') }}">{{ form.password_change.label(class='form-check-input-label') }}</a> 
+                    </div>
                 </fieldset>
                 <div class="form-group">
                     {{ form.submit(class="btn btn-outline-info") }}

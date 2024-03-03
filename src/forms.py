@@ -28,11 +28,9 @@ class LoginForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired(), Length(min=3, max=30)])
     password = PasswordField("Password", validators=[DataRequired()])
     remember = BooleanField('Remember Me')
-    password_change = BooleanField('Change my Password')
     submit = SubmitField('Login')
 
 class ChangePasswordForm(FlaskForm):
-    username = StringField("Username", validators=[DataRequired(), Length(min=3, max=30)])
     old_password = PasswordField("Existing Password", validators=[DataRequired()])
     new_password = PasswordField("New Password", validators=[DataRequired()])
     submit = SubmitField('Change')
@@ -42,7 +40,8 @@ class UpdateAccount(FlaskForm):
     email = StringField("Email", validators=[Email()], render_kw={"placeholder": "email"})
     picture = FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'png'])])
     submit = SubmitField('Update')
-    
+    password_change = BooleanField('Change my Password')
+
 
     def validate_username(self, username):
         if username.data != current_user.username:
