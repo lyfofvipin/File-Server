@@ -14,7 +14,7 @@ import markdown
 def home():
     folder_list = list_dirs(result_base_dir_path)
     folder_list = [(folder, time.ctime(os.path.getmtime(os.path.join(result_base_dir_path, folder)))) for folder in folder_list]
-    return render_template("home.html", title="File Server | Home", folder_list=folder_list if folder_list else [], dates=os.path.getmtime)
+    return render_template("home.html", title="File Server | Home", folder_list=folder_list if folder_list else [], allow_registractions=allow_registractions)
 
 @app.route("/about")
 def about():
@@ -53,6 +53,8 @@ def login():
             if request.args.get('next'):
                 if "home" in request.args.get('next'):
                     return redirect(url_for('file_and_folders', next_url=request.args.get('next').replace("/home", "") ))
+                elif "change-password" in request.args.get('next'):
+                    return redirect(url_for('change_password'))
                 else:
                     return redirect(url_for('upload_file'))
             else:
@@ -61,19 +63,21 @@ def login():
             flash("Login Unsuccessfull, Please check Username or Password", "danger")
     return render_template("login.html", title="File Server | LOGIN", form = form, allow_registractions=allow_registractions)
 
-@app.route("/change-password", methods=['GET', 'POST'])
+@app.route("/account/change-password", methods=['GET', 'POST'])
+@login_required
 def change_password():
     form = ChangePasswordForm()
+    username=current_user.username
     if form.validate_on_submit():
-         user = User.query.filter_by(username=form.username.data).first()
-         if user and bcrypt.check_password_hash(user.password, form.old_password.data):
+        user = User.query.filter_by(username=username).first()
+        if user and bcrypt.check_password_hash(user.password, form.old_password.data):
             if form.validate_on_submit():
                 hashed_password = bcrypt.generate_password_hash(form.new_password.data).decode('utf-8')
                 user.password = hashed_password
                 db.session.commit()
-                flash(f'Password changed for {form.username.data}', 'success')
+                flash(f'Password changed for {username}', 'success')
                 return redirect(url_for('login'))
-         else:
+        else:
             flash("Username or Password is wrong", "danger")
     return render_template("password_change.html", title="File Server | PASSWORD CHANGE", form = form)
 
