@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content-section">
+    <form action="{{url_for('replace_file_icon', file_path=file_path)}}" method="POST" enctype="multipart/form-data">
+        <legend class="border-bottom mb-4">Select New File</legend>
+        <div class="form-group">
+            <div class="custom-file">
+                <label>Select New File</label><br>
+                <input type="file" id="file_to_upload" name="file_to_upload">
+            </div>
+        </div>
+        <textarea placeholder="Anything you want to say about this file/files type here. :)" class="form-control" rows="2" id="comment" name="comment"></textarea><br>
+        <button type="submit" class="btn btn-primary">Replace</button>
+    </form>
+</div>
+{% endblock %}

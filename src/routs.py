@@ -113,21 +113,49 @@ def account():
     image_file = url_for('static', filename='profile_pic/' + current_user.image)
     return render_template("account.html", title="File Server | ACCOUNT", image_file=image_file, form=form)
 
+@app.route("/home/<path:file_path>/replace", methods=["GET", "POST"])
+@login_required
+def replace_file_icon(file_path):
+    path = os.path.join(result_base_dir_path, file_path)
+    if current_user.role:
+        if request.method == "GET":
+            return render_template("replace_file.html", title="File Server | Replace File", file_path=file_path)
+        else:
+            file_name, comment = request.files.get('file_to_upload').filename, request.form['comment']
+            if not file_name:
+                flash(f'Select a File to Upload.', 'danger')
+                return render_template("replace_file.html", title="File Server | Replace File", file_path=file_path)
+            if file_validater(file_name):
+                file_path = os.path.join(result_base_dir_path, file_path)
+                os.remove(file_path)
+                # Getting the dir name to upload new file
+                file_path = "/".join(file_path.split("/")[:-1])
+                file_path = os.path.join(file_path, file_name)
+                set_the_description(file_path, file_name, comment)
+                request.files['file_to_upload'].save(file_path)
+                flash(f'File Replaced successfully.', 'success')
+            else:
+                flash("Invalid File please select Valid File.", 'danger')
+                return render_template("replace_file.html", title="File Server | Replace File", file_path=file_path)
+        return render_template("replace_file.html", title="File Server | Replace File", file_path=file_path)
+
 @app.route("/home/<path:next_url>")
 @login_required
 def file_and_folders(next_url):
     path = os.path.join(result_base_dir_path, next_url)
     if os.path.isdir(path):
-        folder_content = [(folder, time.ctime(os.path.getmtime(os.path.join(path, folder)))) for folder in os.listdir(path)]
+        #  Adding the time and dir name
+        folder_content = [(folder_name, time.ctime(os.path.getmtime(os.path.join(path, folder_name)))) for folder_name in os.listdir(path)]
+        # Hiding the hidden files
         folder_content = [ x for x in folder_content if not x[0].startswith(".") ]
+        # Adding the description
         folder_content = [ [x[0], x[1], y] for x,y in zip(folder_content, get_the_description(path, folder_content)) ]
+        # Adding the file/folder metadata
+        folder_content = [ [x[0], x[1], x[2], True if os.path.isdir(os.path.join(result_base_dir_path, next_url, x[0])) else False ] for x in folder_content ]
         return render_template("folders.html", folder_content=folder_content, next_url=next_url, join=os.path.join)
     else:
-        folder_path, file_path = "/".join(path.split("/")[:-1]), path.split('/')[-1]
-        if any([ x for x in extension_want_to_open if file_path.endswith(x) ]):
-            return send_from_directory(folder_path, file_path)
-        else:
-            return send_from_directory(folder_path, file_path, as_attachment=True)
+        folder_path, file_name = "/".join(path.split("/")[:-1]), path.split('/')[-1]
+        return send_from_directory(folder_path, file_name, as_attachment=True)
 
 @app.route("/upload", methods=["GET", "POST"])
 @login_required
@@ -184,6 +212,7 @@ def replace_file():
                 if file_validater(file_name):
                     file_path = os.path.join(result_base_dir_path, request.form['available_file'])
                     os.remove(file_path)
+                    # Getting the dir name to upload new file
                     file_path = "/".join(file_path.split("/")[:-1])
                     file_path = os.path.join(file_path, file_name)
                     set_the_description(file_path, file_name, comment)
@@ -228,6 +257,7 @@ def delete_file():
 
 @app.errorhandler(404)
 def error_404(error):
+    print(request)
     return render_template("404.html", title="File Server | ERROR"), 404
 
 @app.errorhandler(403)
