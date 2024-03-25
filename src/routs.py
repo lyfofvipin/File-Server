@@ -113,14 +113,22 @@ def account():
     image_file = url_for('static', filename='profile_pic/' + current_user.image)
     return render_template("account.html", title="File Server | ACCOUNT", image_file=image_file, form=form)
 
+@app.route("/home/<path:file_path>/delete", methods=["GET", "POST"])
+@login_required
+def delete_file_icon(file_path):
+    if current_user.role:
+        if request.method == "POST":
+            operation = request.form.get("file_operation")
+            if operation == "True":
+                os.remove(os.path.join(result_base_dir_path, file_path))
+            return file_and_folders("/".join(file_path.split("/")[:-1]))
+        return render_template("delete_file.html", title="File Server | Delete File", file_path=file_path)
+
 @app.route("/home/<path:file_path>/replace", methods=["GET", "POST"])
 @login_required
 def replace_file_icon(file_path):
-    path = os.path.join(result_base_dir_path, file_path)
     if current_user.role:
-        if request.method == "GET":
-            return render_template("replace_file.html", title="File Server | Replace File", file_path=file_path)
-        else:
+        if request.method == "POST":
             file_name, comment = request.files.get('file_to_upload').filename, request.form['comment']
             if not file_name:
                 flash(f'Select a File to Upload.', 'danger')
@@ -134,6 +142,7 @@ def replace_file_icon(file_path):
                 set_the_description(file_path, file_name, comment)
                 request.files['file_to_upload'].save(file_path)
                 flash(f'File Replaced successfully.', 'success')
+                return render_template("replace_file.html", title="File Server | Replace File")
             else:
                 flash("Invalid File please select Valid File.", 'danger')
                 return render_template("replace_file.html", title="File Server | Replace File", file_path=file_path)
@@ -257,7 +266,6 @@ def delete_file():
 
 @app.errorhandler(404)
 def error_404(error):
-    print(request)
     return render_template("404.html", title="File Server | ERROR"), 404
 
 @app.errorhandler(403)

@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% block content %}
+<script>
+    function what_to_do_with_file(operation = false){
+        console.log(operation)
+        var set_value=document.getElementById("file_operation")
+        newOption = document.createElement("option")
+        if (operation){
+            newOption.value = "True";
+            newOption.innerHTML = "True";
+        }
+        else{
+            newOption.value = "False";
+            newOption.innerHTML = "False";
+        }
+        set_value.appendChild(newOption)
+    }
+</script>
+<div class="content-section">
+    <form action="{{url_for('delete_file_icon', file_path=file_path)}}" method="POST" enctype="multipart/form-data">
+        <legend class="border-bottom mb-4">Confirmation</legend>
+        <div class="form-group">
+            <div class="custom-file">
+                <label>Are you sure you want to delete the file {{ file_path }}</label><br>
+                <select class="custom-select custom-select-sm mb-3 display-hidden" id="file_operation", name="file_operation">
+                </select>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-danger" onclick="what_to_do_with_file(operation=true)">Delete</button> <button type="submit" class="btn btn-primary" onclick="what_to_do_with_file(operation=false)">Cancel</button>
+    </form>
+</div>
+{% endblock %}
