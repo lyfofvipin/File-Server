@@ -148,6 +148,14 @@ def replace_file_icon(file_path):
                 return render_template("replace_file.html", title="File Server | Replace File", file_path=file_path)
         return render_template("replace_file.html", title="File Server | Replace File", file_path=file_path)
 
+@app.route("/home/<path:file_path>/preview")
+@login_required
+def preview_file_icon(file_path):
+    if current_user.role:
+        path = os.path.join(result_base_dir_path, file_path)
+        folder_path, file_name = "/".join(path.split("/")[:-1]), path.split('/')[-1]
+        return send_from_directory(folder_path, file_name)
+
 @app.route("/home/<path:next_url>")
 @login_required
 def file_and_folders(next_url):
