@@ -22,7 +22,7 @@ Here a few settings you can change.
 
 `port` --> This variable's value is used to decide that on which port of the system will be use by File-Server
 
-`supported_file_extension` --> This is a list that contains the extensions that will be allowed by the file-server. ( like by default it has only `xml` and `gz` ) if left blank `[]` It will allow all type of files.
+`supported_file_extension` --> This is a list that contains the extensions that will be allowed by the file-server. ( like by default it any type of files as it's `[]` ) put file extension in the same to support limited file types ex : `["xml", "png", "pdf"]` .
 
 `result_base_dir_path` --> This is a string where File-Server store all the files and create all dictatory on the basic of `config_dir` you can update it's value if you want to use some another dictatory.
 

@@ -124,6 +124,20 @@ def delete_file_icon(file_path):
             return file_and_folders("/".join(file_path.split("/")[:-1]))
         return render_template("delete_file.html", title="File Server | Delete File", file_path=file_path)
 
+@app.route("/home/<path:file_path>/rename", methods=["GET", "POST"])
+@login_required
+def rename_file_icon(file_path):
+    if current_user.role:
+        if request.method == "POST":
+            file_new_name = request.form.get("file_new_name")
+            if not file_new_name:
+                flash(f'Enter a file name.', 'danger')
+                return render_template("rename_file_icon.html", title="File Server | Rename File", file_path=file_path)
+            folder_path = "/".join(file_path.split("/")[:-1])
+            os.rename(os.path.join(result_base_dir_path, file_path), os.path.join(result_base_dir_path, folder_path, file_new_name))
+            return file_and_folders("/".join(file_path.split("/")[:-1]))
+        return render_template("rename_file_icon.html", title="File Server | Rename File", file_path=file_path)
+
 @app.route("/home/<path:file_path>/replace", methods=["GET", "POST"])
 @login_required
 def replace_file_icon(file_path):
