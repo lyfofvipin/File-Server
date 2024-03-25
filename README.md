@@ -1,19 +1,21 @@
 # File-Server
 
-This application is developed for sharing files between multiple teams.
-We have 2 type of user in this application one has a role of QE ( Tester ) and anther has role of developer, A user with QE role can upload files and downloads but a user with developer access can only download files. The application by default support only `.xml` and `.gz` file but you can always add more type by changing the values in [config.py](https://github.com/vipin3699/File-Server/blob/master/src/config.py).
+This application is developed for giving some extra functionality to your file system you can display your entire file system via this application and it gives you multiple ways to interact like API, GUI, CLI.
+
+We have 2 type of user in this application one has a role of QE ( Tester ) and anther has role of developer, A user with QE role can upload files and downloads but a user with developer access can only download files. The application by default support only `.xml` and `.gz` file but you can always add more type by changing the values in [config.py](https://github.com/lyfofvipin/File-Server/blob/master/src/config.py).
 This app is developed using Python's Flask module.
 The work of this app is very simple It let you Upload, download and Replace Files ( via WUI, CLI and API's ).
 
 # A Simple UseCase
 
-In our case my teams are working in different regions across the globe so we need to share some result files with the developers and tester so we use it's WUI to share files with them,. In our Automaton we use it's CLI feature to pass the flags and Perform operations on the files. App has API's those are running on the Server so user can hit them also for Uploading and Downloading files.
+In our case my teams are working in different regions across the globe so we need to share some result files with the developers and tester so we use it's WUI to share files with them,. 
+In our Automaton we use it's CLI feature to pass the flags and Perform operations on the files. App has API's those are running on the Server so user can hit them also for Uploading and Downloading files.
 
 
 # Deployment Step
 ## Want to customise some fields
 File-Server has it's own default settings but you can change them according to your use case.
-all the settings are saved in a file name as [config.py](https://github.com/vipin3699/File-Server/blob/master/src/config.py)
+all the settings are saved in a file name as [config.py](https://github.com/lyfofvipin/File-Server/blob/master/src/config.py)
 Here a few settings you can change.
 
 `config_dir` --> This looks like a simple Python dictatory but it plays a very vital role in File-Server. So the backend code check this variable and create a similar folder structure in the system. ( This make the process bit faster as It do not need to setup any database for the files )
@@ -35,11 +37,11 @@ So if the value of this variable is kept `[]` it will download the files, or you
 \
 \
 \
-To deploy the app you can run this [script](https://github.com/vipin3699/File-Server/blob/master/deploy_on_host.sh) or if you want to deploy on container then use this [script](https://github.com/vipin3699/File-Server/blob/master/deploy_in_container.sh).
+To deploy the app you can run this [script](https://github.com/lyfofvipin/File-Server/blob/master/deploy_on_host.sh) or if you want to deploy on container then use this [script](https://github.com/lyfofvipin/File-Server/blob/master/deploy_in_container.sh).
 `Note: By default File-Server run on port 5000`
 
 ## Available URL
-`/` or `/home`  This URL will show all the **directories** available in `result_base_dir_path` variable in [file](https://github.com/vipin3699/File-Server/blob/master/src/config.py).
+`/` or `/home`  This URL will show all the **directories** available in `result_base_dir_path` variable in [file](https://github.com/lyfofvipin/File-Server/blob/master/src/config.py).
 
 `/about`    This URL will show you the about page currently It's just the application description and the Documentation.
 
@@ -114,7 +116,7 @@ Below command will setup CLI for you
 
 *NOTE: CLI is not supported on Windows as of now.*
 
-`sudo curl https://raw.githubusercontent.com/vipin3699/File-Server/master/src/file_server -o /usr/bin/file-server; sudo chmod 777 /usr/bin/file-server`
+`sudo curl https://raw.githubusercontent.com/lyfofvipin/File-Server/master/src/file_server -o /usr/bin/file-server; sudo chmod 777 /usr/bin/file-server`
 
 Once you are done with CLI setup command update the `Fs_Host` value in file `/usr/bin/file-server` with the IP/Hostname of server where the File-Server is hosted :)
 
@@ -122,7 +124,7 @@ Once you are done with CLI setup command update the `Fs_Host` value in file `/us
 Help for the command `file-server`
 
 ```
-[vipin3699@kvy File-Server]$ file_server 
+[lyfofvipin@kvy File-Server]$ file_server 
 Usage: file_server [OPTIONS] COMMAND [ARGS]...
 
 Options:
@@ -136,7 +138,7 @@ Commands:
 
 Help for `download` Command:
 ```
-[vipin3699@kvy File-Server]$ file_server download --help
+[lyfofvipin@kvy File-Server]$ file_server download --help
 Usage: file_server download [OPTIONS]
 
   This option is use to download files.
@@ -160,7 +162,7 @@ Options:
 Help for `upload` Command:
 
 ```
-[vipin3699@kvy File-Server]$ file_server upload --help
+[lyfofvipin@kvy File-Server]$ file_server upload --help
 Usage: file_server upload [OPTIONS]
 
   This option is use to upload files.
@@ -183,7 +185,7 @@ Options:
 Help for `replace` Command:
 
 ```
-[vipin3699@kvy File-Server]$ file_server replace --help
+[lyfofvipin@kvy File-Server]$ file_server replace --help
 Usage: file_server replace [OPTIONS]
 
   This option is use to replace a file on the File Server.
@@ -212,7 +214,7 @@ Note: *I have export the username and passwords as Shell Environment Variables s
 #### Listing and Downloading files:
 Listing all Products:
 ```
-[vipin3699@kvy File-Server]$ file_server download
+[lyfofvipin@kvy File-Server]$ file_server download
 {
   "aviable_data_on_path in formet 'file_name': 'file_comments'": {
     "Product1": "", 
@@ -225,7 +227,7 @@ Listing all Products:
 
 Listing files of a specific Product:
 ```
-[vipin3699@kvy File-Server]$ file_server download --product Product1
+[lyfofvipin@kvy File-Server]$ file_server download --product Product1
 {
   "aviable_data_on_path in formet 'file_name': 'file_comments'": {
     "01": "", 
@@ -237,7 +239,7 @@ Listing files of a specific Product:
 
 Listing files of a specific Product Version:
 ```
-[vipin3699@kvy File-Server]$ file_server download --product Product1 --version 02
+[lyfofvipin@kvy File-Server]$ file_server download --product Product1 --version 02
 {
   "aviable_data_on_path in formet 'file_name': 'file_comments'": {
     "Sub_Product1": "", 
@@ -250,7 +252,7 @@ Listing files of a specific Product Version:
 
 Listing files of a specific Sub Product:
 ```
-[vipin3699@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 
+[lyfofvipin@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 
 {
   "aviable_data_on_path in formet 'file_name': 'file_comments'": {
     "category1": "", 
@@ -263,7 +265,7 @@ Listing files of a specific Sub Product:
 
 Listing files of a specific Category:
 ```
-[vipin3699@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 --category category4
+[lyfofvipin@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 --category category4
 {
   "aviable_data_on_path in formet 'file_name': 'file_comments'": {
     "sub_category_1": ""
@@ -276,14 +278,14 @@ Listing files of a specific Sub Category:
 If you don't have any files on given values it will return a blank string.
 
 ```
-[vipin3699@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 --category category4 --sub_category sub_category_1
+[lyfofvipin@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 --category category4 --sub_category sub_category_1
 {
   "aviable_data_on_path in formet 'file_name': 'file_comments'": {}
 }
 ```
 
 ```
-[vipin3699@kvy File-Server]$ file_server download --product Product1 --version 01 --sub_prod Sub_Product1 --category category1 --sub_category sub_category_1
+[lyfofvipin@kvy File-Server]$ file_server download --product Product1 --version 01 --sub_prod Sub_Product1 --category category1 --sub_category sub_category_1
 {
   "aviable_data_on_path": [
     "test1.xml": "Test Comment for the file1",
@@ -294,7 +296,7 @@ If you don't have any files on given values it will return a blank string.
 
 Downloading files from the File Server:
 ```
-[vipin3699@kvy File-Server]$ file_server download --product Product1 --version 01 --sub_prod Sub_Product1 --category category1 --sub_category sub_category_1 --file test_file.gz
+[lyfofvipin@kvy File-Server]$ file_server download --product Product1 --version 01 --sub_prod Sub_Product1 --category category1 --sub_category sub_category_1 --file test_file.gz
 Downloading......
 test_file.gz
 Download Compleat
@@ -304,7 +306,7 @@ Download Compleat
 
 Uploading files to a specific Product:
 ```
-[vipin3699@kvy File-Server]$ file_server upload --product Product1 --file file1.xml
+[lyfofvipin@kvy File-Server]$ file_server upload --product Product1 --file file1.xml
 Uploading......
 file1.xml
 {
@@ -314,7 +316,7 @@ file1.xml
 
 Uploading files with a comment Product:
 ```
-[vipin3699@kvy File-Server]$ file_server upload --product Product1 --file file1.xml --comment "This is the test comment added to file1"
+[lyfofvipin@kvy File-Server]$ file_server upload --product Product1 --file file1.xml --comment "This is the test comment added to file1"
 Uploading......
 file1.xml
 {
@@ -324,7 +326,7 @@ file1.xml
 
 Uploading files to a specific Product Version:
 ```
-[vipin3699@kvy File-Server]$ file_server upload --product Product1 --version 01 --file file1.xml
+[lyfofvipin@kvy File-Server]$ file_server upload --product Product1 --version 01 --file file1.xml
 Uploading......
 file1.xml
 {
@@ -334,14 +336,14 @@ file1.xml
 
 Uploading files while using need_url flag:
 ```
-[vipin3699@kvy File-Server]$ file_server upload --product Product1 --version 01 --file file1.xml
+[lyfofvipin@kvy File-Server]$ file_server upload --product Product1 --version 01 --file file1.xml
 /home/Product1/file1.xml
 ```
 
 
 Uploading files to a specific Sub Product:
 ```
-[vipin3699@kvy File-Server]$ file_server upload --product Product1 --version 01 --sub_prod Sub_Product2 --file file1.xml
+[lyfofvipin@kvy File-Server]$ file_server upload --product Product1 --version 01 --sub_prod Sub_Product2 --file file1.xml
 Uploading......
 file1.xml
 {
@@ -361,7 +363,7 @@ file1.xml
 
 Uploading files to a specific Sub Category:
 ```
-[vipin3699@kvy File-Server]$ file_server upload --product Product1 --version 01 --sub_prod Sub_Product1 --category category3 --sub_category sub_category_3 --file file1.xml
+[lyfofvipin@kvy File-Server]$ file_server upload --product Product1 --version 01 --sub_prod Sub_Product1 --category category3 --sub_category sub_category_3 --file file1.xml
 Uploading......
 file1.xml
 {
@@ -371,7 +373,7 @@ file1.xml
 
 Uploading multiple files:
 ```
-file_server upload --product Product1 --version 01 -U vipin3699 -P test -f file1.xml -f file2.xml -f file3.xml
+file_server upload --product Product1 --version 01 -U lyfofvipin -P test -f file1.xml -f file2.xml -f file3.xml
 Uploading...... 
 file1.xml
 {
@@ -457,7 +459,7 @@ Replacing File if multiple files available on the server:
 
 In such kind of scenario you need to pass 
 ```
-[vipin3699@kvy File-Server]$ file_server replace --old_file file1.xml --file_name file2.xml 
+[lyfofvipin@kvy File-Server]$ file_server replace --old_file file1.xml --file_name file2.xml 
 Replacing file2.xml ....
 {
   "Found multiple files, pass the `file_number` with which you want to replace the file from the given list: ": [
@@ -472,7 +474,7 @@ Replacing file2.xml ....
 
 Using __file_number__ to replace a specific file:
 ```
-[vipin3699@kvy File-Server]$ file_server replace --old_file file1.xml --file_number 5 --file_name file2.xml 
+[lyfofvipin@kvy File-Server]$ file_server replace --old_file file1.xml --file_number 5 --file_name file2.xml 
 Replacing file2.xml ....
 {
   "message": "File Replaced Successfully."
@@ -480,7 +482,7 @@ Replacing file2.xml ....
 ```
 
 ```
-[vipin3699@kvy File-Server]$ file_server replace --old_file file1.xml --file_name file2.xml 
+[lyfofvipin@kvy File-Server]$ file_server replace --old_file file1.xml --file_name file2.xml 
 Replacing file2.xml ....
 {
   "Found multiple files, pass the `file_number` with which you want to replace the file from the given list: ": [
@@ -494,7 +496,7 @@ Replacing file2.xml ....
 
 If you only have 1 file available then it will auto replace that file without __file_number__ parameter.
 ```
-[vipin3699@kvy File-Server]$ file_server replace --old_file file2.xml --file_name file3.xml 
+[lyfofvipin@kvy File-Server]$ file_server replace --old_file file2.xml --file_name file3.xml 
 Replacing file3.xml ....
 {
   "message": "File Replaced Successfully."
@@ -503,7 +505,7 @@ Replacing file3.xml ....
 
 Replacing the file with updating the comment.
 ```
-[vipin3699@kvy File-Server]$ file_server replace --old_file file2.xml --file_name file3.xml --comment "This is the test comment added to file3" 
+[lyfofvipin@kvy File-Server]$ file_server replace --old_file file2.xml --file_name file3.xml --comment "This is the test comment added to file3" 
 Replacing file3.xml ....
 {
   "message": "File Replaced Successfully."
@@ -512,7 +514,7 @@ Replacing file3.xml ....
 
 If the file is not on the FileServer:
 ```
-[vipin3699@kvy File-Server]$ file_server replace --old_file file8.xml --file_name file3.xml 
+[lyfofvipin@kvy File-Server]$ file_server replace --old_file file8.xml --file_name file3.xml 
 Replacing file3.xml ....
 {
   "message": "File not found on the File Server."

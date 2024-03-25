@@ -29,7 +29,7 @@ config_dir = {
 
 Product_Versions = ["01", "02"]
 skip_product_version_creation_for_products = []
-supported_file_extension = ["*"]
+supported_file_extension = []
 result_base_dir_path = "/home/result_files/"
 create_file_structure = True
 port = "5000"
