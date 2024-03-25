@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content-section">
+    <form action="{{url_for('rename_file_icon', file_path=file_path)}}" method="POST" enctype="multipart/form-data">
+        <legend class="border-bottom mb-4">Enter New Name For The File</legend>
+        <div class="form-group">
+            <div class="custom-file">
+                <label>Enter Name For The File With Extension ex: test_file.xml</label><br>
+                <input type="text" id="file_new_name" name="file_new_name" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Rename</button>
+    </form>
+</div>
+{% endblock %}
