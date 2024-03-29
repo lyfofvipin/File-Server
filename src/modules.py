@@ -1,5 +1,5 @@
 import os
-from src import supported_file_extension
+from src import supported_file_extension, non_supported_file_extension
 convert_to_url = lambda x : '<a href="{0}">{1}</a>'.format(x,x)
 description_file_name = ".file_server/{0}.text"
 description_dir_name = ".file_server"
@@ -11,7 +11,10 @@ def list_dirs(result_base_dir_path):
         file_path = os.path.join( result_base_dir_path + files)
         if os.path.isdir(file_path): yield files
 
-def file_validater(file_name):
+def file_validater(file_name=""):
+    for ext in non_supported_file_extension:
+        if file_name.endswith(ext):
+            return False
     if not supported_file_extension: return True
     return True if file_name[-3:] in supported_file_extension or file_name[-2:] in supported_file_extension else False
 

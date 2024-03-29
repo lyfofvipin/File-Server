@@ -176,7 +176,11 @@ def file_and_folders(next_url):
     path = os.path.join(result_base_dir_path, next_url)
     if os.path.isdir(path):
         #  Adding the time and dir name
-        folder_content = [(folder_name, time.ctime(os.path.getmtime(os.path.join(path, folder_name)))) for folder_name in os.listdir(path)]
+        folder_content = [(folder_name, os.path.getmtime(os.path.join(path, folder_name))) for folder_name in os.listdir(path)]
+        # Sort the files
+        folder_content = sorted(folder_content, key=lambda x: x[1]); folder_content.reverse()
+        # update the time format
+        folder_content = [ ( folder[0], time.ctime(folder[1])) for folder in folder_content ]
         # Hiding the hidden files
         folder_content = [ x for x in folder_content if not x[0].startswith(".") ]
         # Adding the description
@@ -211,7 +215,7 @@ def upload_file():
                             message, flag = message + file_name + ' is allready on the server.\n', False
                         else:
                             set_the_description(file_path, file_name, comment)
-                            request.files['file_to_upload'].save(file_path)
+                            file.save(file_path)
                             message += file_name + " Uploaded successfully.\n"
                     else:
                         message, flag = message + 'Looks like you have selected wrong fields. Please try again.\n', False
