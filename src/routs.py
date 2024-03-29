@@ -195,13 +195,11 @@ def file_and_folders(next_url):
 @app.route("/upload", methods=["GET", "POST"])
 @login_required
 def upload_file():
-    msg = "Seems like you have set the value of `create_file_structure` False in config.py file.\n Uploading files is not supported with that feature as of now."
-    if not create_file_structure:
-        return render_template("404.html", title="File Server | Not Supported", msg=msg), 404
-    message, flag = " ", True
     if current_user.role:
         if request.method == "POST":
-            product, sub_category, version, category, sub_prod, comment = request.form.get('product'), request.form.get('sub_category'), request.form.get('version'), request.form.get('category'), request.form.get('sub_prod'), request.form.get('comment')
+            message, flag = "", True
+            comment = request.form.get('comment')
+            file_path = request.form.get('file_path')
             file_name = request.files['file_to_upload'].filename
             if not file_name:
                 flash(f'Select a File to Upload.', 'danger')
@@ -209,21 +207,22 @@ def upload_file():
             for file in request.files.getlist("file_to_upload"):
                 file_name = file.filename
                 if file_validater(file_name):
-                    file_path = os.path.join(result_base_dir_path, get_value(product) , get_value(version), get_value(sub_prod), get_value(category), get_value(sub_category), file_name)
-                    if os.path.exists(file_path.replace(file_name, "")):
+                    file_path = os.path.join(result_base_dir_path, file_path)
+                    if os.path.exists(file_path):
+                        file_path = os.path.join(file_path, file_name)
                         if os.path.exists(file_path):
-                            message, flag = message + file_name + ' is allready on the server.\n', False
+                            message, flag = message + file_name + ' is already on the server.\n', False
                         else:
                             set_the_description(file_path, file_name, comment)
                             file.save(file_path)
                             message += file_name + " Uploaded successfully.\n"
                     else:
-                        message, flag = message + 'Looks like you have selected wrong fields. Please try again.\n', False
+                        message, flag = message + 'Looks like you have enter the wrong path. Please try again.\n', False
                 else:
                     message, flag = message + file_name + ' is not Supported.\n', False
             flash(message, 'success' if flag else 'danger')
             return redirect(url_for('home'))
-        return render_template("upload.html", title="File Server | Upload", Product_Versions=Product_Versions, config_dir=config_dir, skip_product_version_creation_for_products=skip_product_version_creation_for_products)
+        return render_template("upload.html", title="File Server | Upload")
     else:
         return render_template("403.html", title="File Server | ERROR"), 403
 
