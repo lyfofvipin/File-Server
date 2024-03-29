@@ -31,6 +31,8 @@ So if the value of this variable is kept `[]` it will download the files, or you
 
 `create_file_structure` --> So File-Server create a similar directory structure as `config_dir` but if you don't want that to happen you can just set it's value to `False`.
 
+`non_supported_file_extension` --> You can use this option to define the list of files you do not want to be uploaded on the server.
+
 `skip_product_version_creation_for_products` --> This variable has 3 supported values. `[]` `empty list` means no changes, `["*"]` `"*"` a string with a `*` means during File-Server directory creation deployment process will not create Product versions for any projects, `["xyz product", "abc product"]` a list of products In this case during File-Server directory creation deployment process will not create Product versions for the given projects.
 
 `allow_registractions`  --> This Option will enable and disable the registrations if True then File-Server will allow you to register new users, If False it won't open the `/register` url anymore.
