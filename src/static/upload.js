@@ -1,168 +1,156 @@
-// Here value of config_dir is coming from the Python Backend
+function showNotification(message, type = 'info') {
+    document.querySelectorAll('.upload-notification').forEach((node) => node.remove());
 
-function insertValue(id_name, values)
-{
-    var select = document.getElementById(id_name)
-    if ( Array.isArray(values)){
-        var new_values = {}
-        for (let index = 0; index < values.length; index++) {
-            new_values[values[index]] = values[index]
-        }
-        values = new_values
-    }
-    for (let value in values) {
-        // Create a new Option and Value
-        newOption = document.createElement("OPTION"),
-        newOptionVal = document.createTextNode(value);
+    const notification = document.createElement('div');
+    notification.className = 'upload-notification';
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: var(--radius-md);
+        color: white;
+        font-weight: 500;
+        z-index: 1000;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        max-width: 320px;
+        box-shadow: var(--shadow-lg);
+    `;
 
-        newOption.appendChild(newOptionVal);
-        select.insertBefore(newOption,select.firstChild);
-    }
+    const colors = {
+        success: 'var(--success-600)',
+        error: 'var(--danger-600)',
+        warning: 'var(--warning-600)',
+        info: 'var(--primary-600)',
+    };
+
+    notification.style.background = colors[type] || colors.info;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 10);
+
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => notification.remove(), 300);
+    }, 5000);
 }
 
-function display_sub_product() {
-    var product = document.getElementById('product').value
-    var values = Object.keys(config_dir[product])
-    remove_all_objects('sub_prod')
-    insertValue('sub_prod', values)
-    return true
+function validateUploadPath(pathValue) {
+    const normalized = pathValue.replace(/\\/g, '/').trim();
+    if (!normalized) {
+        return true;
+    }
+    if (normalized.startsWith('/') || normalized.includes('..')) {
+        return false;
+    }
+    return true;
 }
 
-function display_category(){
-    var product = document.getElementById('product').value
-    var sub_prod = document.getElementById('sub_prod').value
-    var value = config_dir[product][sub_prod]
-    remove_all_objects('category')
-    insertValue('category', value)
-    return true
+function validateForm() {
+    const pathInput = document.getElementById('upload_path');
+    const fileInput = document.getElementById('file_to_upload');
+
+    if (!validateUploadPath(pathInput.value)) {
+        showNotification('Destination path must be relative and cannot contain ..', 'error');
+        pathInput.focus();
+        return false;
+    }
+
+    if (!fileInput.files || fileInput.files.length === 0) {
+        showNotification('Please select at least one file to upload', 'error');
+        return false;
+    }
+
+    return true;
 }
 
-function display_sub_category(){
-    var product = document.getElementById('product').value
-    var sub_prod = document.getElementById('sub_prod').value
-    var category = document.getElementById('category').value
-    var values = config_dir[product][sub_prod][category]
-    remove_all_objects('sub_category')
-    insertValue('sub_category', values)
-    return true
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 }
 
-function remove_all_objects(id_name){
-    select = document.getElementById(id_name)
-    for ( let x = select.length -1 ; x >= 0 ; x-- ){
-        select[x].remove()
-    }
-    return true
+function displayFiles(files) {
+    const fileList = document.getElementById('fileList');
+    fileList.innerHTML = '';
+    if (!files.length) return;
+
+    const filesContainer = document.createElement('div');
+    filesContainer.style.cssText = 'border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 1rem; background: var(--gray-50);';
+
+    const header = document.createElement('h5');
+    header.textContent = `Selected files (${files.length})`;
+    header.style.cssText = 'margin: 0 0 1rem 0; color: var(--gray-700);';
+    filesContainer.appendChild(header);
+
+    Array.from(files).forEach((file, index) => {
+        const fileItem = document.createElement('div');
+        fileItem.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--gray-200);';
+        if (index === files.length - 1) {
+            fileItem.style.borderBottom = 'none';
+        }
+
+        const fileName = document.createElement('span');
+        fileName.textContent = file.name;
+        fileName.style.cssText = 'color: var(--gray-700);';
+
+        const fileSize = document.createElement('span');
+        fileSize.textContent = formatFileSize(file.size);
+        fileSize.style.cssText = 'color: var(--gray-500); font-size: 0.875rem;';
+
+        fileItem.appendChild(fileName);
+        fileItem.appendChild(fileSize);
+        filesContainer.appendChild(fileItem);
+    });
+
+    fileList.appendChild(filesContainer);
 }
 
-function update_values_on_select( call_product='', call_sub_product='', call_category='', call_sub_category='' ){
-    var product = document.getElementById('product').value
-    var sub_prod = document.getElementById('sub_prod')
-    var category = document.getElementById('category')
-    var sub_category = document.getElementById('sub_category')
+document.addEventListener('DOMContentLoaded', function() {
+    const fileUploadArea = document.getElementById('fileUploadArea');
+    const fileInput = document.getElementById('file_to_upload');
+    const uploadForm = document.getElementById('uploadForm');
+    const uploadBtn = document.getElementById('uploadBtn');
 
-    if ( call_product ){
-        if ( Object.keys(config_dir[product]).length == 1 && "" in config_dir[product] ){
-            sub_prod.classList.add('display-hidden')
-            display_sub_product()
-        }
-        else if ( Object.keys(config_dir[product]).length >= 1 ){
-            sub_prod.classList.remove('display-hidden')
-            display_sub_product()
-        }
-        else{
-            sub_prod.classList.add('display-hidden')
-        }
-    
-        if ( config_dir[product][sub_prod.value] != undefined && Object.keys(config_dir[product][sub_prod.value]).length == 1 && "" in config_dir[product][sub_prod.value] ){
-            category.classList.remove('display-hidden')
-            display_category()
-        }
-        else if ( config_dir[product][sub_prod.value] != undefined && Object.keys(config_dir[product][sub_prod.value]).length >= 1 ){
-            category.classList.remove('display-hidden')
-            display_category()
-        }
-        else{
-            category.classList.add('display-hidden')
-        }
+    if (!fileUploadArea || !fileInput || !uploadForm) {
+        return;
+    }
 
-        if ( config_dir[product][sub_prod.value] != undefined && config_dir[product][sub_prod.value][category.value] != undefined && config_dir[product][sub_prod.value][category.value].length >= 1 ){
-            sub_category.classList.remove('display-hidden')
-            display_sub_category()
-        }
-        else{
-            sub_category.classList.add('display-hidden')
-        }
-    }
-    else if ( call_sub_product ){
-        if ( config_dir[product][sub_prod.value] != undefined && Object.keys(config_dir[product][sub_prod.value]).length == 1 && "" in config_dir[product][sub_prod.value] ){
-            category.classList.remove('display-hidden')
-            display_category()
-        }
-        else if ( config_dir[product][sub_prod.value] != undefined && Object.keys(config_dir[product][sub_prod.value]).length >= 1 ){
-            category.classList.remove('display-hidden')
-            display_category()
-        }
-        else{
-            category.classList.add('display-hidden')
-        }
+    fileUploadArea.addEventListener('click', () => fileInput.click());
 
-        if ( config_dir[product][sub_prod.value] != undefined && config_dir[product][sub_prod.value][category.value] != undefined && config_dir[product][sub_prod.value][category.value].length >= 1 ){
-            sub_category.classList.remove('display-hidden')
-            display_sub_category()
-        }
-        else{
-            sub_category.classList.add('display-hidden')
-        }
-    }
-    else  if ( call_category ) {
-        if ( config_dir[product][sub_prod.value] != undefined && config_dir[product][sub_prod.value][category.value] != undefined && config_dir[product][sub_prod.value][category.value].length >= 1 ){
-            sub_category.classList.remove('display-hidden')
-            display_sub_category()
-        }
-        else{
-            sub_category.classList.add('display-hidden')
-        }
-    }
-    return true
-}
+    fileUploadArea.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        fileUploadArea.classList.add('dragover');
+    });
 
-function clear_values_on_submit(){
-    var sub_prod = document.getElementById('sub_prod')
-    var category = document.getElementById('category')
-    var sub_category = document.getElementById('sub_category')
-    var version = document.getElementById('version')
-    
-    if ( sub_prod.classList.contains("display-hidden") ){
-        remove_all_objects("sub_prod")
-    }
-    if ( category.classList.contains("display-hidden") ){
-        remove_all_objects("category")
-    }
-    if ( sub_category.classList.contains("display-hidden") ){
-        remove_all_objects("sub_category")
-    }
-    if ( version.classList.contains("display-hidden") ){
-        remove_all_objects("version")
-    }
-}
+    fileUploadArea.addEventListener('dragleave', (event) => {
+        event.preventDefault();
+        fileUploadArea.classList.remove('dragover');
+    });
 
-function display_versions(){
-    var product = document.getElementById('product').value
-    var version = document.getElementById('version')
-    if ( skip_product_version_creation_for_products.includes(product) || skip_product_version_creation_for_products.includes("*") ){
-        version.classList.add('display-hidden')
-        remove_all_objects('version')
-    }
-    else{
-        remove_all_objects('version')
-        insertValue('version', Product_Versions)
-        version.classList.remove('display-hidden')
-        return true
-    }
-}
+    fileUploadArea.addEventListener('drop', (event) => {
+        event.preventDefault();
+        fileUploadArea.classList.remove('dragover');
+        fileInput.files = event.dataTransfer.files;
+        displayFiles(fileInput.files);
+    });
 
-// Setup Products select element Values in WUI
-insertValue('product', config_dir)
-update_values_on_select('product_call')
-display_versions()
+    fileInput.addEventListener('change', function() {
+        displayFiles(this.files);
+    });
+
+    uploadForm.addEventListener('submit', function(event) {
+        if (!validateForm()) {
+            event.preventDefault();
+            return false;
+        }
+        uploadBtn.disabled = true;
+        uploadBtn.textContent = 'Uploading...';
+    });
+});

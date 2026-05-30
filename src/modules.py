@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 from src import supported_file_extension, non_supported_file_extension
 convert_to_url = lambda x : '<a href="{0}">{1}</a>'.format(x,x)
 description_file_name = ".file_server/{0}.text"
@@ -11,12 +12,47 @@ def list_dirs(result_base_dir_path):
         file_path = os.path.join( result_base_dir_path + files)
         if os.path.isdir(file_path): yield files
 
+def normalize_relative_path(rel_path: str) -> Optional[str]:
+    if rel_path is None:
+        return ""
+    rel_path = str(rel_path).replace("\\", "/").strip().strip("/")
+    if not rel_path:
+        return ""
+    parts = [part for part in rel_path.split("/") if part and part != "."]
+    if ".." in parts:
+        return None
+    return "/".join(parts)
+
+
+def resolve_safe_dir_path(base_dir: str, rel_path: str = "") -> Optional[str]:
+    norm = normalize_relative_path(rel_path)
+    if norm is None:
+        return None
+    base = os.path.realpath(base_dir)
+    candidate = base if not norm else os.path.realpath(os.path.join(base, norm))
+    if candidate == base or candidate.startswith(base + os.sep):
+        return candidate
+    return None
+
+
+def ensure_dir_under_base(base_dir: str, rel_path: str = "") -> Optional[str]:
+    target = resolve_safe_dir_path(base_dir, rel_path)
+    if target is None:
+        return None
+    os.makedirs(target, exist_ok=True)
+    return target
+
+
 def file_validater(file_name=""):
     for ext in non_supported_file_extension:
         if file_name.endswith(ext):
             return False
-    if not supported_file_extension: return True
-    return True if file_name[-3:] in supported_file_extension or file_name[-2:] in supported_file_extension else False
+    if not supported_file_extension:
+        return True
+    _, ext = os.path.splitext(file_name)
+    ext = ext.lstrip(".").lower()
+    allowed = {item.lstrip(".").lower() for item in supported_file_extension}
+    return ext in allowed
 
 def get_value(item):
     return item if item else ""

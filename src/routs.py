@@ -1,10 +1,33 @@
 import secrets, os, time
-from flask import render_template, url_for, flash, redirect, request, send_from_directory
+from flask import (
+    abort,
+    render_template,
+    url_for,
+    flash,
+    redirect,
+    request,
+    send_from_directory,
+    Response,
+)
 from src.forms import RegistrationForm, LoginForm, UpdateAccount, ChangePasswordForm
 from src.models import User
 from src import *
 from flask_login import login_user, current_user, logout_user, login_required
-from src.modules import list_dirs, file_validater, get_value, find_files, get_the_description, set_the_description
+from src.modules import (
+    list_dirs,
+    file_validater,
+    find_files,
+    get_the_description,
+    set_the_description,
+    normalize_relative_path,
+    ensure_dir_under_base,
+)
+from src.thumbnails import (
+    get_or_create_thumbnail_jpeg,
+    is_media_thumbnailable,
+    is_video_thumbnailable,
+    resolve_safe_file_path,
+)
 from src.apis import home_page_api, download_api, upload_api, replace_api
 import markdown
 
@@ -21,8 +44,18 @@ def about():
     try:
         with open('README.md', 'r') as f:
             text = f.read()
-            html = markdown.markdown(text, encoding='utf8', extensions=['fenced_code', 'codehilite'])
-    except:
+            html = markdown.markdown(
+                text,
+                extensions=['fenced_code', 'codehilite', 'tables'],
+                extension_configs={
+                    'codehilite': {
+                        'css_class': 'highlight',
+                        'guess_lang': False,
+                        'pygments_style': 'friendly',
+                    }
+                },
+            )
+    except Exception:
         html = ""
     return render_template("about.html", title="File Server | About", html=html)
 
@@ -116,6 +149,8 @@ def account():
 @app.route("/home/<path:file_path>/delete", methods=["GET", "POST"])
 @login_required
 def delete_file_icon(file_path):
+    if not allow_delete:
+        return render_template("404.html", title="File Server | Not Found"), 404
     if current_user.role:
         if request.method == "POST":
             operation = request.form.get("file_operation")
@@ -165,10 +200,31 @@ def replace_file_icon(file_path):
 @app.route("/home/<path:file_path>/preview")
 @login_required
 def preview_file_icon(file_path):
-    if current_user.role:
-        path = os.path.join(result_base_dir_path, file_path)
-        folder_path, file_name = "/".join(path.split("/")[:-1]), path.split('/')[-1]
-        return send_from_directory(folder_path, file_name)
+    abs_path = resolve_safe_file_path(result_base_dir_path, file_path)
+    if not abs_path:
+        abort(404)
+    folder_path = os.path.dirname(abs_path)
+    file_name = os.path.basename(abs_path)
+    return send_from_directory(folder_path, file_name)
+
+
+@app.route("/home/<path:file_path>/thumbnail")
+@login_required
+def file_thumbnail(file_path):
+    abs_path = resolve_safe_file_path(result_base_dir_path, file_path)
+    if not abs_path:
+        abort(404)
+    name = os.path.basename(abs_path)
+    if not is_media_thumbnailable(name):
+        abort(404)
+    data = get_or_create_thumbnail_jpeg(result_base_dir_path, abs_path, name)
+    if not data:
+        abort(404)
+    return Response(
+        data,
+        mimetype="image/jpeg",
+        headers={"Cache-Control": "private, max-age=3600"},
+    )
 
 @app.route("/home/<path:next_url>")
 @login_required
@@ -187,7 +243,14 @@ def file_and_folders(next_url):
         folder_content = [ [x[0], x[1], y] for x,y in zip(folder_content, get_the_description(path, folder_content)) ]
         # Adding the file/folder metadata
         folder_content = [ [x[0], x[1], x[2], True if os.path.isdir(os.path.join(result_base_dir_path, next_url, x[0])) else False ] for x in folder_content ]
-        return render_template("folders.html", folder_content=folder_content, next_url=next_url, join=os.path.join)
+        return render_template(
+            "folders.html",
+            folder_content=folder_content,
+            next_url=next_url,
+            join=os.path.join,
+            is_video_thumbnailable=is_video_thumbnailable,
+            is_media_thumbnailable=is_media_thumbnailable,
+        )
     else:
         folder_path, file_name = "/".join(path.split("/")[:-1]), path.split('/')[-1]
         return send_from_directory(folder_path, file_name, as_attachment=True)
@@ -195,37 +258,62 @@ def file_and_folders(next_url):
 @app.route("/upload", methods=["GET", "POST"])
 @login_required
 def upload_file():
-    msg = "Seems like you have set the value of `create_file_structure` False in config.py file.\n Uploading files is not supported with that feature as of now."
-    if not create_file_structure:
-        return render_template("404.html", title="File Server | Not Supported", msg=msg), 404
-    message, flag = " ", True
-    if current_user.role:
-        if request.method == "POST":
-            product, sub_category, version, category, sub_prod, comment = request.form.get('product'), request.form.get('sub_category'), request.form.get('version'), request.form.get('category'), request.form.get('sub_prod'), request.form.get('comment')
-            file_name = request.files['file_to_upload'].filename
-            if not file_name:
-                flash(f'Select a File to Upload.', 'danger')
-                return redirect(url_for('upload_file'))
-            for file in request.files.getlist("file_to_upload"):
-                file_name = file.filename
-                if file_validater(file_name):
-                    file_path = os.path.join(result_base_dir_path, get_value(product) , get_value(version), get_value(sub_prod), get_value(category), get_value(sub_category), file_name)
-                    if os.path.exists(file_path.replace(file_name, "")):
-                        if os.path.exists(file_path):
-                            message, flag = message + file_name + ' is allready on the server.\n', False
-                        else:
-                            set_the_description(file_path, file_name, comment)
-                            file.save(file_path)
-                            message += file_name + " Uploaded successfully.\n"
-                    else:
-                        message, flag = message + 'Looks like you have selected wrong fields. Please try again.\n', False
-                else:
-                    message, flag = message + file_name + ' is not Supported.\n', False
-            flash(message, 'success' if flag else 'danger')
-            return redirect(url_for('home'))
-        return render_template("upload.html", title="File Server | Upload", Product_Versions=Product_Versions, config_dir=config_dir, skip_product_version_creation_for_products=skip_product_version_creation_for_products)
-    else:
+    if not current_user.role:
         return render_template("403.html", title="File Server | ERROR"), 403
+
+    default_path = normalize_relative_path(request.args.get("path", "")) or ""
+
+    if request.method == "POST":
+        upload_path = request.form.get("upload_path", "")
+        comment = request.form.get("comment", "")
+        norm_path = normalize_relative_path(upload_path)
+        if norm_path is None:
+            flash("Invalid upload path.", "danger")
+            return redirect(url_for("upload_file", path=upload_path))
+
+        dest_dir = ensure_dir_under_base(result_base_dir_path, norm_path)
+        if dest_dir is None:
+            flash("Upload path must stay inside the file server root.", "danger")
+            return redirect(url_for("upload_file", path=upload_path))
+
+        files = request.files.getlist("file_to_upload")
+        if not any(file.filename for file in files):
+            flash("Select a file to upload.", "danger")
+            return redirect(url_for("upload_file", path=norm_path))
+
+        message, flag = "", True
+        for file in files:
+            if not file.filename:
+                continue
+            file_name = os.path.basename(file.filename.replace("\\", "/"))
+            if not file_name or file_name.startswith("."):
+                message += f"{file.filename} is not allowed.\n"
+                flag = False
+                continue
+            if file_validater(file_name):
+                file_path = os.path.join(dest_dir, file_name)
+                if os.path.exists(file_path):
+                    message += f"{file_name} is already on the server.\n"
+                    flag = False
+                else:
+                    set_the_description(file_path, file_name, comment)
+                    file.save(file_path)
+                    message += f"{file_name} uploaded successfully.\n"
+            else:
+                message += f"{file_name} is not supported.\n"
+                flag = False
+
+        flash(message.strip(), "success" if flag else "danger")
+        if norm_path:
+            return redirect(url_for("file_and_folders", next_url=norm_path))
+        return redirect(url_for("home"))
+
+    return render_template(
+        "upload.html",
+        title="File Server | Upload",
+        default_path=default_path,
+        result_base_dir_path=result_base_dir_path,
+    )
 
 @app.route("/replace", methods=["GET", "POST"])
 @login_required
@@ -268,6 +356,8 @@ def replace_file():
 @app.route("/delete", methods=["GET", "POST"])
 @login_required
 def delete_file():
+    if not allow_delete:
+        return render_template("404.html", title="File Server | Not Found"), 404
     available_files = []
     if current_user.role:
         if request.method == "POST":

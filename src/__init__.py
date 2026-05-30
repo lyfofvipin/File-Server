@@ -12,4 +12,13 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
 
+
+@app.context_processor
+def inject_config():
+    return {
+        "allow_registractions": allow_registractions,
+        "allow_delete": allow_delete,
+    }
+
+
 from src import routs

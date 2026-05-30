@@ -1,8 +1,16 @@
 {% extends "layout.html" %}
 {% block content %}
-{% if html %}
-  {{ html | safe}}
-{% else %}
-<b>About Page will update from the <pre>README.md</pre> Make sure you have a file at the root of the repository.</b>
-{% endif %}
+<div class="content-section docs-page">
+    <div class="docs-header">
+        <h1>About &amp; API documentation</h1>
+        <p>Overview, configuration, and API reference for this file server.</p>
+    </div>
+    {% if html %}
+    <div class="docs-content">
+        {{ html | safe }}
+    </div>
+    {% else %}
+    <p class="docs-empty">About content is loaded from <code>README.md</code> at the repository root.</p>
+    {% endif %}
+</div>
 {% endblock %}

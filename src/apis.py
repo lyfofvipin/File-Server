@@ -1,7 +1,17 @@
 import os
 from flask import jsonify, request, send_from_directory, make_response
-from src import app, db, result_base_dir_path, config_dir, bcrypt
-from src.modules import list_dirs, file_validater, get_value, find_files, set_the_description, get_the_description, if_none_then_empty_str
+from src import app, db, result_base_dir_path, bcrypt
+from src.modules import (
+    list_dirs,
+    file_validater,
+    find_files,
+    set_the_description,
+    get_the_description,
+    if_none_then_empty_str,
+    normalize_relative_path,
+    ensure_dir_under_base,
+    resolve_safe_dir_path,
+)
 from src.models import User
 
 def api_data_validator(request):
@@ -26,43 +36,52 @@ def home_page_api():
 def download_api(request):
     api_data_check = api_data_validator(request)
     if "Auth Verified." in api_data_check:
-        product, version, sub_prod, sub_category, category, file_name = request.args.get('product'), request.args.get('version'), request.args.get('sub_prod'), request.args.get('sub_category'), request.args.get('category'), request.args.get('file')
-        path = os.path.join(result_base_dir_path, get_value(product), get_value(version), get_value(sub_prod), get_value(category), get_value(sub_category))
-        if os.path.isdir(path) and not file_name:
-            files = [ x for x in os.listdir(path) if x != "site.db" and not x.startswith(".")]
-            files = { x:y for x,y in zip(files, get_the_description(path, files, called_from="api")) }
-            return jsonify({"aviable_data_on_path in formet 'file_name': 'file_comments'": files})
-        elif os.path.exists(path):
-            return send_from_directory(path, file_name, as_attachment=True)
-        else:
-            return jsonify({'Message' : 'Looks like you entered something wrong. Please try again.',
-                "Supported Hierarchy": config_dir}), 404
+        rel_path = normalize_relative_path(request.args.get('path', ''))
+        if rel_path is None:
+            return jsonify({'message': 'Invalid path.'}), 404
+        file_name = request.args.get('file')
+        dir_path = resolve_safe_dir_path(result_base_dir_path, rel_path)
+        if not dir_path or not os.path.isdir(dir_path):
+            return jsonify({'message': 'Directory not found.'}), 404
+        if not file_name:
+            files = [x for x in os.listdir(dir_path) if x != "site.db" and not x.startswith(".")]
+            files = {x: y for x, y in zip(files, get_the_description(dir_path, files, called_from="api"))}
+            return jsonify({"available_files": files})
+        file_path = os.path.join(dir_path, os.path.basename(file_name))
+        if os.path.isfile(file_path):
+            return send_from_directory(dir_path, os.path.basename(file_name), as_attachment=True)
+        return jsonify({'message': 'File not found.'}), 404
     return make_response(api_data_check, 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})
 
 def upload_api(request):
     api_data_check = api_data_validator(request)
     if "Auth Verified." in api_data_check:
         if api_data_check[-1]:
-            product, version, sub_prod, category, sub_category, comment, need_url  = request.args.get('product'), request.args.get('version'), request.args.get('sub_prod'), request.args.get('category'), request.args.get('sub_category'), request.args.get('comment'), request.args.get('need_url')
-            path = os.path.join(result_base_dir_path, get_value(product), get_value(version), get_value(sub_prod), get_value(category), get_value(sub_category))
-            if 'file' not in request.files: return jsonify({'message' : 'No file part in the request'}), 404
+            rel_path = normalize_relative_path(request.args.get('path', ''))
+            if rel_path is None:
+                return jsonify({'message': 'Invalid path.'}), 404
+            comment = request.args.get('comment', '')
+            need_url = request.args.get('need_url')
+            dest_dir = ensure_dir_under_base(result_base_dir_path, rel_path)
+            if not dest_dir:
+                return jsonify({'message': 'Upload path must stay inside the file server root.'}), 404
+            if 'file' not in request.files:
+                return jsonify({'message' : 'No file part in the request'}), 404
             file = request.files['file']
-            if file.filename == '': return jsonify({'message': 'No file selected for uploading'}), 404
-            if not file_validater(file.filename): return jsonify({'message': 'Invalid file'}), 404
-            if os.path.exists(path):
-                if os.path.exists(os.path.join(path, file.filename)):
-                    return jsonify({'message' : 'This file is already on the server.'})
-                else:
-                    comment = comment if comment else ""
-                    set_the_description(path, file.filename, comment)
-                    file.save(os.path.join(path, file.filename))
-                    if need_url:
-                        return os.path.join("/home/", if_none_then_empty_str(product), if_none_then_empty_str(version), if_none_then_empty_str(sub_prod), if_none_then_empty_str(category), if_none_then_empty_str(sub_category), if_none_then_empty_str(file.filename))
-                    else:
-                        return jsonify({'message' : 'File Uploaded successfully'})
-            else:
-                return jsonify({'Message' : 'Looks like you entered something wrong. Please try again.',
-                "Supported Version": config_dir}), 404
+            if file.filename == '':
+                return jsonify({'message': 'No file selected for uploading'}), 404
+            file_name = os.path.basename(file.filename.replace("\\", "/"))
+            if not file_validater(file_name):
+                return jsonify({'message': 'Invalid file'}), 404
+            dest_file = os.path.join(dest_dir, file_name)
+            if os.path.exists(dest_file):
+                return jsonify({'message' : 'This file is already on the server.'})
+            set_the_description(dest_file, file_name, comment or "")
+            file.save(dest_file)
+            if need_url:
+                url_path = "/home/" + "/".join(filter(None, [if_none_then_empty_str(rel_path), file_name]))
+                return url_path
+            return jsonify({'message' : 'File Uploaded successfully'})
         else:
             return jsonify({"message": "You don't have permission to access this API."})
     return make_response(api_data_check, 401, {'WWW-Authenticate' : 'Basic realm="Login required!"'})

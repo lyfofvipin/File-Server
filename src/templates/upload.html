@@ -1,31 +1,75 @@
 {% extends "layout.html" %}
 {% block content %}
-<script>
-    var config_dir = JSON.parse("{{ config_dir }}".replaceAll('&#39;', '"'))
-    var Product_Versions = "{{ Product_Versions }}".replaceAll("&#39;", "").replaceAll('"', '').replaceAll("[", "").replaceAll("]", "").split(", ")
-    var skip_product_version_creation_for_products = "{{ skip_product_version_creation_for_products }}".replaceAll("&#39;", "").replaceAll('"', '').replaceAll("[", "").replaceAll("]", "").split(", ")
-</script>
+
 <div class="content-section">
-    <p>Upload file page</p>
-    <form action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data">
-        <legend class="border-bottom mb-4">Upload File</legend>
-        <select class="custom-select custom-select-sm mb-3" onclick="update_values_on_select(call_product='call_product', call_sub_product='', call_category='', call_sub_category=''), display_versions();" id="product" name="product">
-        </select>
-        <select class="custom-select custom-select-sm mb-3 display-hidden" id="version" name="version"></select>
-        <select class="custom-select custom-select-sm mb-3 display-hidden" onclick="update_values_on_select(call_product='', call_sub_product='call_sub_product', call_category='', call_sub_category='');" id="sub_prod" name="sub_prod">
-        </select>
-        <select class="custom-select custom-select-sm mb-3 display-hidden" onclick="update_values_on_select(call_product='', call_sub_product='', call_category='call_category', call_sub_category='');" id="category" name="category">
-        </select>
-        <select class="custom-select custom-select-sm mb-3 display-hidden" onclick="update_values_on_select(call_product='', call_sub_product='', call_category='', call_sub_category='call_sub_category');" id="sub_category" name="sub_category">
-        </select>
-        <textarea placeholder="Anything you want to say about this file/files type here. :)" class="form-control" rows="2" id="comment" name="comment"></textarea><br>
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="margin-bottom: 0.5rem;">Upload Files</h1>
+        <p style="font-size: var(--text-lg); color: var(--gray-600); margin-bottom: 0; line-height: 1.6;">
+            Choose a folder under <code>{{ result_base_dir_path }}</code> and upload one or more files.
+        </p>
+    </div>
+
+    <form action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
         <div class="form-group">
-            <div class="custom-file">
-                <input type="file" id="file_to_upload" name="file_to_upload" multiple>
-            </div>
+            <label class="form-label" for="upload_path">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px;">
+                    <path d="M22 19C22 19.5304 21.7893 20.0391 21.4142 20.4142C21.0391 20.7893 20.5304 22 20 22H4C3.46957 22 2.96086 20.7893 2.58579 20.4142C2.21071 20.0391 2 19.5304 2 19V5C2 4.46957 2.21071 3.96086 2.58579 3.58579C2.96086 3.21071 3.46957 3 4 3H9L11 6H20C20.5304 6 21.0391 6.21071 21.4142 6.58579C21.7893 6.96086 22 7.46957 22 8V19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Destination folder
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="upload_path"
+                name="upload_path"
+                value="{{ default_path }}"
+                placeholder="e.g. Photos/2024 or leave empty for root"
+                autocomplete="off"
+            >
+            <small style="display: block; margin-top: 0.5rem; color: var(--gray-500);">
+                Relative path inside the file server root. Missing folders are created automatically.
+            </small>
         </div>
-        <button type="submit" onclick="clear_values_on_submit();" class="btn btn-primary">Upload</button>
-    </form>    
+
+        <div class="form-group">
+            <label class="form-label" for="comment">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px;">
+                    <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Comments (optional)
+            </label>
+            <textarea placeholder="Add a description for the uploaded files..." class="form-control" rows="3" id="comment" name="comment"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px;">
+                    <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Select files
+            </label>
+            <div class="file-upload-area" id="fileUploadArea">
+                <div style="text-align: center;">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="color: var(--gray-400); margin-bottom: 1rem;">
+                        <path d="M21 15V19C21 19.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <polyline points="7,10 12,5 17,10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <line x1="12" y1="5" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <h4 style="color: var(--gray-700); margin-bottom: 0.5rem;">Drop files here or click to browse</h4>
+                    <p style="color: var(--gray-500); margin-bottom: 0;">You can select multiple files at once</p>
+                </div>
+                <input type="file" id="file_to_upload" name="file_to_upload" multiple style="display: none;">
+            </div>
+            <div id="fileList" style="margin-top: 1rem;"></div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+            <a href="/" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary" id="uploadBtn">Upload files</button>
+        </div>
+    </form>
 </div>
-<script type="text/javascript" src="{{ url_for('static', filename='upload.js') }}" ></script>
+
+<script type="text/javascript" src="{{ url_for('static', filename='upload.js') }}"></script>
 {% endblock %}

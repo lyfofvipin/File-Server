@@ -1,13 +1,65 @@
 {% extends "layout.html" %}
 {% block content %}
-    <article class="media content-section">
-        <div class="media-body">
-        <div class="article-metadata">
+    <div class="home-hero">
+        <h1>Files</h1>
+        <p>Browse, upload, and manage files on this server — similar to Fedora's Files app.</p>
+    </div>
+
+    {% if folder_list %}
+    <div class="content-section">
+        <div class="path-bar" style="margin-bottom: var(--space-4);">
+            <div>
+                <h2 class="path-bar-title">Home</h2>
+                <div class="path-breadcrumb">
+                    <span>{{ folder_list|length }} folder{% if folder_list|length != 1 %}s{% endif %}</span>
+                </div>
+            </div>
         </div>
-        {% for folder in folder_list %}
-        <h2><a class="article-title" href="/home/{{ folder[0] }}">{{ folder[0].capitalize() }}</a></h2>
-        <p class="article-content">{{ folder[1] }}</p>
-        {% endfor %}
+
+        <div class="file-grid" id="fileContainer">
+            {% for folder in folder_list %}
+            <div class="file-card" data-index="{{ loop.index }}">
+                <div class="file-header">
+                    <div class="file-icon folder">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M22 19C22 19.5304 21.7893 20.0391 21.4142 20.4142C21.0391 20.7893 20.5304 22 20 22H4C3.46957 22 2.96086 20.7893 2.58579 20.4142C2.21071 20.0391 2 19.5304 2 19V5C2 4.46957 2.21071 3.96086 2.58579 3.58579C2.96086 3.21071 3.46957 3 4 3H9L11 6H20C20.5304 6 21.0391 6.21071 21.4142 6.58579C21.7893 6.96086 22 7.46957 22 8V19Z" stroke="currentColor" stroke-width="1.75"/>
+                        </svg>
+                    </div>
+                    <a href="/home/{{ folder[0] }}" class="file-title">{{ folder[0].replace('_', ' ') }}</a>
+                </div>
+                <div class="file-meta">{{ folder[1] }}</div>
+                <div class="file-actions">
+                    <a href="/home/{{ folder[0] }}" class="btn btn-secondary btn-sm">Open</a>
+                </div>
+            </div>
+            {% endfor %}
         </div>
-    </article>
+    </div>
+    {% else %}
+    <div class="content-section empty-state">
+        <div class="empty-state-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M22 19C22 19.5304 21.7893 20.0391 21.4142 20.4142C21.0391 20.7893 20.5304 22 20 22H4C3.46957 22 2.96086 20.7893 2.58579 20.4142C2.21071 20.0391 2 19.5304 2 19V5C2 4.46957 2.21071 3.96086 2.58579 3.58579C2.96086 3.21071 3.46957 3 4 3H9L11 6H20C20.5304 6 21.0391 6.21071 21.4142 6.58579C21.7893 6.96086 22 7.46957 22 8V19Z" stroke="currentColor" stroke-width="1.75"/>
+            </svg>
+        </div>
+        <h3>No folders yet</h3>
+        <p>There are no folders in the file server root.</p>
+        {% if current_user.is_authenticated and current_user.role %}
+        <a href="/upload" class="btn btn-primary">Upload files</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if current_user.is_authenticated and current_user.role %}
+    <div class="content-section">
+        <h3 style="margin-bottom: var(--space-4);">Quick actions</h3>
+        <div class="quick-actions-grid">
+            <a href="/upload" class="quick-action-card primary">Upload</a>
+            <a href="/replace" class="quick-action-card secondary">Replace</a>
+            {% if allow_delete %}
+            <a href="/delete" class="quick-action-card secondary">Delete</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 {% endblock %}

@@ -18,3 +18,5 @@ SQLAlchemy
 Werkzeug
 WTForms
 markdown
+Pillow
+pillow-heif

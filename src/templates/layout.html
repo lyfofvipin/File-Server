@@ -1,77 +1,85 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <!-- Required meta tags -->
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-        <!-- Bootstrap CSS -->
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-
-        <!-- main CSS -->
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
-
         {% if title %}
         <title>{{ title }}</title>
         {% else %}
-        <title>File Server</title>
+        <title>Files</title>
         {% endif %}
     </head>
 
-    <body>
-        <header class="site-header">
-            <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
-              <div class="container">
-                <a class="navbar-brand mr-4" href="/">File Server</a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
-                  <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarToggle">
-                  <div class="navbar-nav mr-auto">
-                    <a class="nav-item nav-link" href="/">Home</a>
-                    <a class="nav-item nav-link" href="/about">About</a>
-                  </div>
-                  <!-- Navbar Right Side -->
-                  <div class="navbar-nav">
-                    {% if current_user.is_authenticated %}
-                    <a class="nav-item nav-link" href="/account">Account</a>
-                    <a class="nav-item nav-link" href="/logout">Log Out</a>
-                    {% if current_user.role %}
-                      <a class="nav-item nav-link" href="/upload">Upload</a>
-                      <a class="nav-item nav-link" href="/replace">Replace</a>
-                      <a class="nav-item nav-link" href="/delete">Delete</a>
-                    {% endif %}
-                    {% else %}
-                      <a class="nav-item nav-link" href="/login">Login</a>
-                      {% if allow_registractions %}
-                        <a class="nav-item nav-link" href="/register">Register</a>
-                      {% endif %}
-                    {% endif %}
-                  </div>
-                </div>
-              </div>
-            </nav>
+    <body class="files-app">
+        <header class="headerbar">
+            <div class="headerbar-start">
+                <a class="headerbar-brand" href="/">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M22 19C22 19.5304 21.7893 20.0391 21.4142 20.4142C21.0391 20.7893 20.5304 22 20 22H4C3.46957 22 2.96086 20.7893 2.58579 20.4142C2.21071 20.0391 2 19.5304 2 19V5C2 4.46957 2.21071 3.96086 2.58579 3.58579C2.96086 3.21071 3.46957 3 4 3H9L11 6H20C20.5304 6 21.0391 6.21071 21.4142 6.58579C21.7893 6.96086 22 7.46957 22 8V19Z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Files
+                </a>
+            </div>
         </header>
 
-        <main role="main" class="container">
-            <div class="row">
-              <div class="col-md-8">
+        <div class="app-shell">
+            <aside class="sidebar" aria-label="Places">
+                <p class="sidebar-heading">Places</p>
+                <a class="sidebar-item" href="/">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="1.75"/></svg>
+                    Home
+                </a>
+                <a class="sidebar-item" href="/about">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.75"/><path d="M12 11V16M12 8H12.01" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+                    About
+                </a>
+
+                {% if current_user.is_authenticated %}
+                <p class="sidebar-heading">Account</p>
+                <a class="sidebar-item" href="/account">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.75"/><path d="M5 20C5.6 16.5 8.4 15 12 15C15.6 15 18.4 16.5 19 20" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+                    Account
+                </a>
+                {% if current_user.role %}
+                <a class="sidebar-item" href="/upload">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5V15M7 10L12 5L17 10" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><path d="M5 19H19" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+                    Upload
+                </a>
+                <a class="sidebar-item" href="/replace">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12H14M14 12L10 8M14 12L10 16" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><path d="M20 7V17" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+                    Replace
+                </a>
+                {% if allow_delete %}
+                <a class="sidebar-item" href="/delete">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7H20M9 7V5H15V7M7 7L8 19H16L17 7" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+                    Delete
+                </a>
+                {% endif %}
+                {% endif %}
+                <a class="sidebar-item" href="/logout">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 17L15 12L10 7M15 12H5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><path d="M19 5V19" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+                    Log out
+                </a>
+                {% else %}
+                <p class="sidebar-heading">Sign in</p>
+                <a class="sidebar-item" href="/login">Log in</a>
+                {% if allow_registractions %}
+                <a class="sidebar-item" href="/register">Register</a>
+                {% endif %}
+                {% endif %}
+            </aside>
+
+            <main class="main-pane" role="main">
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
-                      <div class="alert alert-{{ messages[0][0] }}">
-                          {{ messages[0][1] }}
-                      </div>
+                    <div class="alert alert-{{ 'success' if messages[0][0] == 'success' else 'danger' if messages[0][0] == 'danger' else 'warning' }}">
+                        {{ messages[0][1] }}
+                    </div>
                     {% endif %}
                 {% endwith %}
                 {% block content %}{% endblock %}
-              </div>
-            </div>
-          </main>
-        <!-- Optional JavaScript -->
-        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-        <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
-
+            </main>
+        </div>
     </body>
 </html>
