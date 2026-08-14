@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      try {
+        document.documentElement.setAttribute(
+          "data-theme",
+          localStorage.getItem("fs_theme") === "light" ? "light" : "dark"
+        );
+      } catch (e) {}
+    </script>
+    <meta name="color-scheme" content="dark light" />
+    <title>file-server · delete</title>
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+  <body data-page="delete">
+    <div class="app" id="app-shell"></div>
+    <div id="page-body" hidden>
+      <div class="panel">
+        <h1>delete</h1>
+        <p class="subtitle">POST /api/delete · requires allow_delete + login</p>
+        <div id="alert" class="alert" hidden></div>
+        <form id="delete-form" class="form">
+          <label>file name to search <input id="file-to-delete" type="text" required /></label>
+          <label>file number (optional) <input id="file-number" type="text" placeholder="1" /></label>
+          <button type="submit" class="btn--danger">./rm</button>
+        </form>
+      </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

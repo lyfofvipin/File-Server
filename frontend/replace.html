@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      try {
+        document.documentElement.setAttribute(
+          "data-theme",
+          localStorage.getItem("fs_theme") === "light" ? "light" : "dark"
+        );
+      } catch (e) {}
+    </script>
+    <meta name="color-scheme" content="dark light" />
+    <title>file-server · replace</title>
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+  <body data-page="replace">
+    <div class="app" id="app-shell"></div>
+    <div id="page-body" hidden>
+      <div class="panel">
+        <h1>replace</h1>
+        <p class="subtitle">POST /api/replace · any logged-in user</p>
+        <div id="alert" class="alert" hidden></div>
+        <form id="replace-form" class="form">
+          <label>existing file name <input id="file-to-replace" type="text" required placeholder="report.xml" /></label>
+          <label>new file <input id="file" type="file" required /></label>
+          <label>file number (optional) <input id="file-number" type="text" placeholder="1" /></label>
+          <label>comment <textarea id="comment" rows="3"></textarea></label>
+          <button type="submit">./replace</button>
+        </form>
+      </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

@@ -1,5 +1,59 @@
 # File-Server
 
+## API / GUI split (plugin mode)
+
+The repo now includes a separable backend and frontend:
+
+- [`backend/`](backend/) — Flask API only (`/api/*`)
+- [`frontend/`](frontend/) — static terminal-style UI that talks **only** to those APIs
+
+### Architecture
+
+```mermaid
+flowchart TB
+  subgraph clients [Clients]
+    Browser[Browser FE]
+    CLI[file_server CLI]
+  end
+
+  subgraph frontendHost [Frontend host any]
+    StaticUI[Static HTML/JS/CSS]
+    ConfigJS["config.js apiBaseUrl"]
+  end
+
+  subgraph backendHost [Backend host any]
+    FlaskAPI[Flask /api routes]
+    Handlers[apis.py handlers]
+    Auth[Basic auth + users DB]
+    FS[(result_base_dir_path)]
+  end
+
+  Browser --> StaticUI
+  StaticUI --> ConfigJS
+  ConfigJS -->|"HTTP JSON / multipart"| FlaskAPI
+  CLI -->|"HTTP Basic /api"| FlaskAPI
+  FlaskAPI --> Handlers
+  Handlers --> Auth
+  Handlers --> FS
+```
+
+```bash
+# Terminal 1 — backend (any host)
+cd backend && pip install -r requirements.txt && python run.py
+
+# Terminal 2 — frontend
+# edit frontend/config.js → apiBaseUrl if the API is remote
+cd frontend && python serve.py
+```
+
+Open `http://localhost:8080` and set `window.FILE_SERVER.apiBaseUrl` in [`frontend/config.js`](frontend/config.js) to point at any backend host. Details: [`backend/README.md`](backend/README.md), [`frontend/README.md`](frontend/README.md).
+
+Frontend features (parity with classic GUI): browse, upload, download, replace, rename, delete, preview/thumbnail, login/register, account/password, about.
+
+The classic monolith under `src/` + root `run.py` remains available for the older WUI.
+
+---
+
 This application is developed for giving some extra functionality to your file system you can display your entire file system via this application and it gives you multiple ways to interact like API, GUI, CLI.
 
 We have 2 type of user in this application one has a role of QE ( Tester ) and anther has role of developer, A user with QE role can upload files and downloads but a user with developer access can only download files. The application by default support only `.xml` and `.gz` file but you can always add more type by changing the values in [config.py](https://github.com/lyfofvipin/File-Server/blob/master/src/config.py).

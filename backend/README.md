@@ -28,13 +28,6 @@ Edit [`src/config.py`](src/config.py) (`Settings`) or set env vars with prefix `
 - `secret_key`
 - `database_url` — optional; defaults to `backend/src/site.db`
 
-## Create a user
-
-```bash
-cd backend
-python create_user.py --username admin --password secret
-```
-
 ## Auth
 
 - **API key** — `POST /api/login` with `{username, password}` mints a browser `session` key (returned as `token`); or login with `{api_key}`. Send as `Authorization: Bearer <key>` or `X-API-Key`
