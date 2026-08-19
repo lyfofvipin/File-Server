@@ -51,6 +51,42 @@
   function joinPath(base, name) {
     return [base, name].filter(Boolean).join("/");
   }
+  const serverRuntimeState = {};
+
+  function markServerOffline(serverId, offline) {
+    if (!serverId) return;
+    if (!serverRuntimeState[serverId]) serverRuntimeState[serverId] = {};
+    serverRuntimeState[serverId].offline = !!offline;
+  }
+
+  function isServerOffline(serverId) {
+    return !!(serverRuntimeState[serverId] && serverRuntimeState[serverId].offline);
+  }
+
+  function setServerLastError(serverId, message) {
+    if (!serverId) return;
+    if (!serverRuntimeState[serverId]) serverRuntimeState[serverId] = {};
+    serverRuntimeState[serverId].lastError = String(message || "").trim();
+    serverRuntimeState[serverId].lastErrorAt = new Date().toISOString();
+  }
+
+  function clearServerLastError(serverId) {
+    if (!serverId || !serverRuntimeState[serverId]) return;
+    serverRuntimeState[serverId].lastError = "";
+    serverRuntimeState[serverId].lastErrorAt = "";
+  }
+
+  function setServerAlertState(serverId, message, type) {
+    const st = getServerState(serverId);
+    st.alertMessage = message || "";
+    st.alertType = type || "";
+  }
+
+  function getServerState(serverId) {
+    if (!serverId) return {};
+    if (!serverRuntimeState[serverId]) serverRuntimeState[serverId] = {};
+    return serverRuntimeState[serverId];
+  }
 
   function parseCdInput(raw, cwd) {
     let val = (raw || "").trim();
@@ -490,14 +526,20 @@
       servers.map(function (s) {
         const isActive = s.id === active;
         const isSplit = split && split.right === s.id;
+        const isOffline = isServerOffline(s.id);
+        const state = serverRuntimeState[s.id] || {};
+        const tooltip = state.lastError
+          ? (s.url + " | last_error: " + state.lastError + " | at: " + (state.lastErrorAt || ""))
+          : s.url;
         return (
           '<button type="button" class="server-tab' +
           (isActive ? " is-active" : "") +
           (isSplit ? " is-split" : "") +
-          '" data-server="' + escapeHtml(s.id) + '" title="' + escapeHtml(s.url) + '">' +
+          (isOffline ? " is-offline" : "") +
+          '" data-server="' + escapeHtml(s.id) + '" title="' + escapeHtml(tooltip) + '">' +
           '<span class="server-tab__dot"></span>' +
           '<span class="server-tab__label">' + escapeHtml(s.label || FSApi.shortHost(s.url)) + "</span>" +
-          '<span class="server-tab__url">' + escapeHtml(FSApi.shortHost(s.url)) + "</span>" +
+          '<span class="server-tab__url">' + escapeHtml(FSApi.shortHost(s.url)) + (isOffline ? " · offline" : "") + "</span>" +
           "</button>"
         );
       }).join("") +
@@ -1010,6 +1052,25 @@
     const allowDelete = !!(shell && shell.meta && shell.meta.allow_delete);
     const canWrite = FSApi.isLoggedIn();
 
+    function showBrowseAlert(message, type) {
+      const sid = FSApi.getActiveServerId();
+      setServerAlertState(sid, message, type);
+      showAlert(alertEl, message, type);
+    }
+
+    function showBrowseAlertFor(serverId, message, type) {
+      setServerAlertState(serverId, message, type);
+      if (FSApi.getActiveServerId() === serverId) {
+        showAlert(alertEl, message, type);
+      }
+    }
+
+    function restoreBrowseAlert() {
+      const sid = FSApi.getActiveServerId();
+      const st = getServerState(sid);
+      showAlert(alertEl, st.alertMessage || "", st.alertType || "");
+    }
+
     const toolbar = $(".toolbar", page);
     if (toolbar && canWrite) {
       toolbar.innerHTML =
@@ -1026,7 +1087,7 @@
             await FSApi.mkdir(path, name.trim());
             location.reload();
           } catch (err) {
-            showAlert(alertEl, err.message, "danger");
+            showBrowseAlert(err.message, "danger");
           }
         };
       }
@@ -1043,7 +1104,7 @@
           await FSApi.rename(fullPath, next.trim());
           location.reload();
         } catch (err) {
-          showAlert(alertEl, err.message, "danger");
+          showBrowseAlert(err.message, "danger");
         }
       };
     }
@@ -1056,7 +1117,7 @@
           await FSApi.deletePath(fullPath);
           location.reload();
         } catch (err) {
-          showAlert(alertEl, err.message, "danger");
+          showBrowseAlert(err.message, "danger");
         }
       };
     }
@@ -1089,8 +1150,14 @@
       return actions;
     }
 
-    async function renderEntries() {
+    async function renderEntries(expectedServerId) {
+      function isStaleServer() {
+        return expectedServerId && FSApi.getActiveServerId() !== expectedServerId;
+      }
+      if (isStaleServer()) return false;
+      tableBody.innerHTML = '<tr><td colspan="4" class="empty">Loading…</td></tr>';
       const data = path ? await FSApi.listPath(path) : await FSApi.listRoot();
+      if (isStaleServer()) return false;
       tableBody.innerHTML = "";
       if (!path) {
         const rootEntries = Array.isArray(data.entries) ? data.entries : [];
@@ -1142,7 +1209,7 @@
               function doRootDownload(e) {
                 if (e) e.preventDefault();
                 FSApi.download("", entry.name).catch(function (err) {
-                  showAlert(alertEl, err.message, "danger");
+                  showBrowseAlert(err.message, "danger");
                 });
               }
               const downloadLink = tr.querySelector(".act-download");
@@ -1160,7 +1227,7 @@
             wireDelete(tr.querySelector(".act-dl"), full);
             tableBody.appendChild(tr);
           });
-          return;
+          return true;
         }
 
         const products = data.products || [];
@@ -1169,7 +1236,7 @@
             '<tr><td colspan="4" class="empty">No folders yet.' +
             (canWrite ? " Use mkdir to create one." : "") +
             "</td></tr>";
-          return;
+          return true;
         }
         products.forEach(function (name) {
           const tr = document.createElement("tr");
@@ -1182,7 +1249,7 @@
           wireDelete(tr.querySelector(".act-dl"), name);
           tableBody.appendChild(tr);
         });
-        return;
+        return true;
       }
       const entries = data.entries || [];
       if (!entries.length) {
@@ -1190,7 +1257,7 @@
           '<tr><td colspan="4" class="empty">This folder is empty.' +
           (canWrite ? " Use mkdir or upload." : "") +
           "</td></tr>";
-        return;
+        return true;
       }
       entries.forEach(function (entry) {
         const full = joinPath(path, entry.name);
@@ -1238,7 +1305,7 @@
         function doDownload(e) {
           if (e) e.preventDefault();
           FSApi.download(path, entry.name).catch(function (err) {
-            showAlert(alertEl, err.message, "danger");
+            showBrowseAlert(err.message, "danger");
           });
         }
         const downloadLink = tr.querySelector(".act-download");
@@ -1255,25 +1322,67 @@
         wireDelete(tr.querySelector(".act-dl"), full);
         tableBody.appendChild(tr);
       });
+      return true;
     }
 
-    async function refreshEntries() {
+    async function refreshEntries(source) {
+      const serverIdAtStart = FSApi.getActiveServerId();
+      const st = getServerState(serverIdAtStart);
+      st.consecutiveFailures = st.consecutiveFailures || 0;
+      st.pausedUntilMs = st.pausedUntilMs || 0;
+      st.pauseNotified = !!st.pauseNotified;
       try {
-        await renderEntries();
+        const rendered = await renderEntries(serverIdAtStart);
+        if (!rendered) return;
+        st.consecutiveFailures = 0;
+        st.pausedUntilMs = 0;
+        st.pauseNotified = false;
+        markServerOffline(serverIdAtStart, false);
+        clearServerLastError(serverIdAtStart);
+        setServerAlertState(serverIdAtStart, "", "");
+        if (FSApi.getActiveServerId() === serverIdAtStart) showAlert(alertEl, "", "");
+        renderServerTabs();
       } catch (err) {
-      if (err.status === 401) { FSApi.clearCredentials(); location.href = hrefWithServer("login.html"); return; }
-      showAlert(alertEl, err.message, "danger");
+        if (err.status === 401) {
+          FSApi.clearCredentials();
+          const nextPath = location.pathname + location.search;
+          location.href = hrefWithServer(
+            "login.html?reason=expired&next=" + encodeURIComponent(nextPath)
+          );
+          return;
+        }
+        st.consecutiveFailures += 1;
+        setServerLastError(serverIdAtStart, err && err.message ? err.message : "request failed");
+        if (st.consecutiveFailures >= 3) {
+          st.pausedUntilMs = Date.now() + 30000;
+          markServerOffline(serverIdAtStart, true);
+          renderServerTabs();
+          if (!st.pauseNotified && FSApi.getActiveServerId() === serverIdAtStart) {
+            showBrowseAlertFor(
+              serverIdAtStart,
+              "Active backend looks offline. Auto-refresh paused for 30s; it will retry automatically.",
+              "warning"
+            );
+            st.pauseNotified = true;
+          }
+          return;
+        }
+        if (source !== "poll") showBrowseAlertFor(serverIdAtStart, err.message, "danger");
       }
     }
 
-    await refreshEntries();
+    restoreBrowseAlert();
+    await refreshEntries("initial");
 
     let refreshTimer = null;
     function startAutoRefresh() {
       if (refreshTimer) clearInterval(refreshTimer);
       refreshTimer = setInterval(function () {
         if (document.hidden) return;
-        refreshEntries();
+        const sid = FSApi.getActiveServerId();
+        const st = getServerState(sid);
+        if (st.pausedUntilMs && Date.now() < st.pausedUntilMs) return;
+        refreshEntries("poll");
       }, 3000);
     }
     startAutoRefresh();
@@ -1283,7 +1392,8 @@
       const sid = FSApi.getActiveServerId();
       if (sid) next.searchParams.set("server", sid);
       history.replaceState(null, "", next.pathname.replace(/\.html$/i, "") + next.search + next.hash);
-      refreshEntries();
+      showAlert(alertEl, "", "");
+      refreshEntries("switch");
       if (shell) shell.setPath(pathFromQuery());
     });
   }
@@ -1293,6 +1403,14 @@
     const alertEl = $("#alert");
     const statusEl = $("#api-status");
     const regLink = $("#register-link");
+    const reason = new URLSearchParams(location.search).get("reason");
+    if (reason === "expired") {
+      showAlert(
+        alertEl,
+        "Session expired or backend data was reset. Please login again.",
+        "warning"
+      );
+    }
     try {
       const h = await FSApi.health();
       statusEl.textContent = "api online · " + FSApi.apiBase() + " · " + h.status;

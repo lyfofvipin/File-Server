@@ -852,6 +852,8 @@ input:focus, textarea:focus {
   flex-shrink: 0;
 }
 .server-tab.is-active .server-tab__dot { background: var(--green); }
+.server-tab.is-offline .server-tab__dot { background: var(--red); }
+.server-tab.is-offline .server-tab__url { color: var(--red); }
 .server-tab__label {
   overflow: hidden;
   text-overflow: ellipsis;
