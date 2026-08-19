@@ -100,10 +100,6 @@ class ApiKeyCreated(BaseModel):
     api_key: str
 
 
-class ProductsOut(BaseModel):
-    products: List[str]
-
-
 class EntryOut(BaseModel):
     name: str
     is_dir: bool
@@ -118,6 +114,12 @@ class BrowseOut(BaseModel):
     available_files: Dict[str, str]
     entries: List[EntryOut]
     path: str
+
+
+class ProductsOut(BaseModel):
+    products: List[str]
+    # Root listing now also includes full entries so files at result_base_dir_path show up.
+    entries: List[EntryOut] = []
 
 
 class UploadOut(BaseModel):
