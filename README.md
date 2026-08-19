@@ -263,6 +263,7 @@ Auth: **API key** (`-k` / `FS_API_KEY`) or **Basic** (`-U` / `-P` or `FS_USERNAM
 ./file_server download -k "$FS_API_KEY"
 ./file_server download --path Product1/01 -f report.xml
 ./file_server upload --path Product1/01 -f report.xml --comment "CI run"
+./file_server upload --path a/b/c/d -f report.xml --auto-create-dir
 ./file_server replace -o report.xml -f report-new.xml
 ```
 ---

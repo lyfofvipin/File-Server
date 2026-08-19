@@ -82,6 +82,30 @@ def print_json_or_text(resp: requests.Response) -> None:
     print(resp.text)
 
 
+def ensure_remote_path(base: str, auth: Auth, rel_path: str) -> None:
+    rel = normalize_path(rel_path)
+    if not rel:
+        return
+    mkdir_url = base + "/mkdir"
+    current = ""
+    for seg in rel.split("/"):
+        parent = current
+        current = seg if not current else current + "/" + seg
+        resp = api_request(
+            "POST",
+            mkdir_url,
+            auth,
+            json={"path": parent, "name": seg},
+        )
+        if resp.ok:
+            continue
+        if resp.status_code == 409:
+            # Folder already exists: safe for idempotent automation.
+            continue
+        print_json_or_text(resp)
+        raise click.ClickException("Failed to create remote path: " + current)
+
+
 @click.group()
 @click.option(
     "--host",
@@ -170,6 +194,12 @@ def download(
 @click.option("--path", default="", help="Destination directory path")
 @click.option("--comment", help="Sidecar comment for uploaded file(s)")
 @click.option(
+    "--auto-create-dir",
+    is_flag=True,
+    default=False,
+    help="Create missing remote folders in --path before upload",
+)
+@click.option(
     "--need_url",
     is_flag=True,
     default=False,
@@ -190,6 +220,7 @@ def upload(
     api_key: str,
     path: str,
     comment: Optional[str],
+    auto_create_dir: bool,
     need_url: bool,
     file: tuple,
 ) -> None:
@@ -200,6 +231,8 @@ def upload(
     url = base + "/upload"
     params: dict = {}
     if rel:
+        if auto_create_dir:
+            ensure_remote_path(base, auth, rel)
         params["path"] = rel
     if comment:
         params["comment"] = comment
