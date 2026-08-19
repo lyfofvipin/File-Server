@@ -69,6 +69,9 @@
 
   function setActiveServerId(id) {
     localStorage.setItem(ACTIVE_KEY, id);
+    try {
+      global.dispatchEvent(new CustomEvent("fs:server-changed", { detail: { id: id } }));
+    } catch (e) {}
   }
 
   function getServer(id) {
@@ -367,12 +370,17 @@
     return true;
   }
 
-  function switchServer(id) {
+  function switchServer(id, options) {
+    const opts = options || {};
     setActiveServerId(id);
     const url = new URL(location.href);
     url.searchParams.set("server", id);
-    // Keep pretty path (no .html)
-    location.href = url.pathname.replace(/\.html$/, "") + url.search + url.hash;
+    const next = url.pathname.replace(/\.html$/, "") + url.search + url.hash;
+    if (opts.soft) {
+      history.replaceState(null, "", next);
+      return;
+    }
+    location.href = next;
   }
 
   function getSplit() {

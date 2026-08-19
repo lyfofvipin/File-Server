@@ -429,15 +429,17 @@
         let server;
         if (editId) {
           server = FSApi.updateServer(editId, url, label);
-          if (server.id === FSApi.getActiveServerId()) location.reload();
-          else {
-            closeServerModal();
-            location.reload();
+          if (server.id === FSApi.getActiveServerId()) {
+            updatePromptApi();
+            renderServerTabs();
           }
+          closeServerModal();
         } else {
           server = FSApi.addServer(url, label);
           closeServerModal();
-          FSApi.switchServer(server.id);
+          FSApi.switchServer(server.id, { soft: true });
+          updatePromptApi();
+          renderServerTabs();
         }
       } catch (err) {
         showAlert(alertEl, err.message, "danger");
@@ -505,7 +507,9 @@
       btn.onclick = function () {
         const id = btn.getAttribute("data-server");
         if (id === FSApi.getActiveServerId()) return;
-        FSApi.switchServer(id);
+        FSApi.switchServer(id, { soft: true });
+        updatePromptApi();
+        renderServerTabs();
       };
       btn.oncontextmenu = function (e) {
         e.preventDefault();
@@ -1064,7 +1068,7 @@
       return actions;
     }
 
-    try {
+    async function renderEntries() {
       const data = path ? await FSApi.listPath(path) : await FSApi.listRoot();
       tableBody.innerHTML = "";
       if (!path) {
@@ -1160,10 +1164,37 @@
         wireDelete(tr.querySelector(".act-dl"), full);
         tableBody.appendChild(tr);
       });
-    } catch (err) {
+    }
+
+    async function refreshEntries() {
+      try {
+        await renderEntries();
+      } catch (err) {
       if (err.status === 401) { FSApi.clearCredentials(); location.href = hrefWithServer("login.html"); return; }
       showAlert(alertEl, err.message, "danger");
+      }
     }
+
+    await refreshEntries();
+
+    let refreshTimer = null;
+    function startAutoRefresh() {
+      if (refreshTimer) clearInterval(refreshTimer);
+      refreshTimer = setInterval(function () {
+        if (document.hidden) return;
+        refreshEntries();
+      }, 3000);
+    }
+    startAutoRefresh();
+
+    window.addEventListener("fs:server-changed", function () {
+      const next = new URL(location.href);
+      const sid = FSApi.getActiveServerId();
+      if (sid) next.searchParams.set("server", sid);
+      history.replaceState(null, "", next.pathname.replace(/\.html$/i, "") + next.search + next.hash);
+      refreshEntries();
+      if (shell) shell.setPath(pathFromQuery());
+    });
   }
 
   async function initLogin() {
