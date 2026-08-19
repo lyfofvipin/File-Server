@@ -8,7 +8,7 @@ if_none_then_empty_str = lambda x : x if x else ""
 
 def list_dirs(result_base_dir_path):
     for files in os.listdir(result_base_dir_path):
-        file_path = os.path.join( result_base_dir_path + files)
+        file_path = os.path.join( result_base_dir_path , files)
         if os.path.isdir(file_path): yield files
 
 def file_validater(file_name=""):
