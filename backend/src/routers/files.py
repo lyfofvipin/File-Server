@@ -72,7 +72,11 @@ BinaryUpload = Annotated[UploadFile, WithJsonSchema({"type": "string", "format":
 
 @router.get("/api", response_model=ProductsOut)
 def list_root():
-    return ProductsOut(products=list(list_dirs(ROOT)))
+    entries = list_path_entries(ROOT)
+    return ProductsOut(
+        products=[e["name"] for e in entries if e.get("is_dir")],
+        entries=[EntryOut(**e) for e in entries],
+    )
 
 
 @router.get("/api/download")

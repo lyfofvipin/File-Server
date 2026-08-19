@@ -10,6 +10,28 @@
     return ((global.FILE_SERVER || {}).apiBaseUrl || "http://127.0.0.1:5000").replace(/\/$/, "");
   }
 
+  function configuredServers() {
+    const cfg = (global.FILE_SERVER || {});
+    const list = Array.isArray(cfg.apiServers) ? cfg.apiServers : [];
+    const normalized = list
+      .map(function (s) {
+        if (!s) return null;
+        if (typeof s === "string") {
+          const u = normalizeUrl(s);
+          return u ? { url: u, label: shortHost(u) } : null;
+        }
+        const u = normalizeUrl(s.url);
+        if (!u) return null;
+        const lbl = String(s.label || "").trim() || shortHost(u);
+        return { url: u, label: lbl };
+      })
+      .filter(Boolean);
+
+    if (normalized.length) return normalized;
+    const fallback = defaultUrl();
+    return [{ url: fallback, label: shortHost(fallback) }];
+  }
+
   function uid() {
     return "srv_" + Math.random().toString(36).slice(2, 10);
   }
@@ -34,15 +56,48 @@
     } catch (e) {
       list = [];
     }
-    if (!Array.isArray(list) || !list.length) {
-      const url = defaultUrl();
-      list = [{ id: uid(), label: shortHost(url), url: url }];
-      saveServers(list);
+    if (!Array.isArray(list)) list = [];
+
+    list = list
+      .map(function (s) {
+        if (!s || !s.url) return null;
+        const u = normalizeUrl(s.url);
+        if (!u) return null;
+        return {
+          id: s.id || uid(),
+          label: (s.label || shortHost(u)),
+          url: u,
+        };
+      })
+      .filter(Boolean);
+
+    const cfg = configuredServers();
+    cfg.forEach(function (c) {
+      const existing = list.find(function (s) { return s.url === c.url; });
+      if (existing) {
+        // Keep config label in sync unless user manually renamed this host in local storage.
+        if (!existing.label || existing.label === shortHost(existing.url)) {
+          existing.label = c.label || shortHost(existing.url);
+        }
+      } else {
+        list.push({ id: uid(), label: c.label || shortHost(c.url), url: c.url });
+      }
+    });
+
+    if (!list.length) {
+      const fallback = defaultUrl();
+      list = [{ id: uid(), label: shortHost(fallback), url: fallback }];
+    }
+
+    const active = getActiveServerId();
+    if (!active || !list.some(function (s) { return s.id === active; })) {
       setActiveServerId(list[0].id);
     }
+
+    saveServers(list);
     return list.map(function (s) {
       return {
-        id: s.id || uid(),
+        id: s.id,
         label: s.label || shortHost(s.url),
         url: normalizeUrl(s.url),
       };

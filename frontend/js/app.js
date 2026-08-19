@@ -1072,6 +1072,76 @@
       const data = path ? await FSApi.listPath(path) : await FSApi.listRoot();
       tableBody.innerHTML = "";
       if (!path) {
+        const rootEntries = Array.isArray(data.entries) ? data.entries : [];
+        if (rootEntries.length) {
+          rootEntries.forEach(function (entry) {
+            const full = entry.name;
+            const tr = document.createElement("tr");
+            let nameHtml;
+            if (entry.is_dir) {
+              nameHtml =
+                '<a class="entry-name dir" href="' +
+                hrefWithServer("index.html?path=" + encodeURIComponent(full)) +
+                '">📁 ' +
+                escapeHtml(entry.name) +
+                "</a>";
+            } else {
+              let thumb = "";
+              if (entry.thumbnailable) {
+                thumb = '<img class="thumb" alt="" data-thumb="' + escapeHtml(full) + '" /> ';
+              }
+              nameHtml =
+                thumb +
+                '<a class="entry-name act-download" href="#">' +
+                "📄 " +
+                escapeHtml(entry.name) +
+                "</a>";
+            }
+            const actions = writeActions(full, entry.name, entry.is_dir);
+            tr.innerHTML =
+              "<td>" + nameHtml + "</td>" +
+              '<td class="entry-meta">' + escapeHtml(entry.mtime || (entry.is_dir ? "dir" : "")) + "</td>" +
+              '<td class="entry-comment">' +
+              escapeHtml(entry.comment || "") +
+              (entry.uploader
+                ? '<div class="entry-uploader">by ' + escapeHtml(entry.uploader) + "</div>"
+                : "") +
+              "</td>" +
+              '<td class="entry-actions">' + actions + "</td>";
+            const thumbImg = tr.querySelector("img[data-thumb]");
+            if (thumbImg) {
+              const thumbPath = thumbImg.getAttribute("data-thumb");
+              FSApi.thumbnailBlob(thumbPath)
+                .then(function (blob) {
+                  if (blob) thumbImg.src = URL.createObjectURL(blob);
+                })
+                .catch(function () {});
+            }
+            if (!entry.is_dir) {
+              function doRootDownload(e) {
+                if (e) e.preventDefault();
+                FSApi.download("", entry.name).catch(function (err) {
+                  showAlert(alertEl, err.message, "danger");
+                });
+              }
+              const downloadLink = tr.querySelector(".act-download");
+              if (downloadLink) downloadLink.onclick = doRootDownload;
+              const getBtn = tr.querySelector(".act-get");
+              if (getBtn) getBtn.onclick = doRootDownload;
+              const viewBtn = tr.querySelector(".act-view");
+              if (viewBtn) {
+                viewBtn.onclick = function () {
+                  openPreview(full, entry.name);
+                };
+              }
+            }
+            wireRename(tr.querySelector(".act-mv"), full, entry.name);
+            wireDelete(tr.querySelector(".act-dl"), full);
+            tableBody.appendChild(tr);
+          });
+          return;
+        }
+
         const products = data.products || [];
         if (!products.length) {
           tableBody.innerHTML =
