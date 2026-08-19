@@ -550,9 +550,6 @@
         ? '<button type="button" data-act="remove">Remove “' + escapeHtml(srv.label) + '”</button>'
         : "") +
       '<hr />' +
-      '<button type="button" data-act="theme">' +
-      (getTheme() === "light" ? "Use dark theme" : "Use light theme") +
-      "</button>" +
       (split
         ? '<button type="button" data-act="unsplit">Close split view</button>'
         : '<div class="traffic-menu__label">Open beside</div>' +
@@ -593,8 +590,6 @@
           FSApi.setSplit(null);
           applySplitLayout();
           renderServerTabs();
-        } else if (act === "theme") {
-          toggleTheme();
         }
       };
     });
@@ -801,6 +796,19 @@
       }).join("");
     }
 
+    function themeToggleHtml() {
+      return (
+        '<div class="sidebar-theme">' +
+        '<label class="theme-toggle" for="theme-toggle-input">' +
+        '<span class="theme-toggle__label">theme</span>' +
+        '<input id="theme-toggle-input" class="theme-toggle__input" type="checkbox" ' + (getTheme() === "light" ? "checked" : "") + " />" +
+        '<span class="theme-toggle__track"><span class="theme-toggle__thumb"></span></span>' +
+        '<span class="theme-toggle__mode">' + (getTheme() === "light" ? "light" : "dark") + "</span>" +
+        "</label>" +
+        "</div>"
+      );
+    }
+
     const apiLine = promptApiHtml();
     const terminalChrome =
       '<div class="terminal-bar">' +
@@ -819,6 +827,7 @@
     if (sidebar && pageAlreadyMounted) {
       sidebar.innerHTML =
         '<div class="brand"><span class="brand-dot"></span>file-server</div>' +
+        themeToggleHtml() +
         '<p class="sidebar-heading">Places</p>' + items(places) +
         '<p class="sidebar-heading">Session</p>' + items(account) +
         (loggedIn ? '<a class="sidebar-item" href="#" id="nav-logout">~/logout</a>' : "") +
@@ -853,6 +862,7 @@
       host.innerHTML =
         '<aside class="sidebar" id="sidebar">' +
         '<div class="brand"><span class="brand-dot"></span>file-server</div>' +
+        themeToggleHtml() +
         '<p class="sidebar-heading">Places</p>' + items(places) +
         '<p class="sidebar-heading">Session</p>' + items(account) +
         (loggedIn ? '<a class="sidebar-item" href="#" id="nav-logout">~/logout</a>' : "") +
@@ -885,6 +895,17 @@
         e.preventDefault();
         FSApi.clearCredentials();
         location.href = hrefWithServer("login.html");
+      };
+    }
+
+    const themeToggle = document.getElementById("theme-toggle-input");
+    if (themeToggle && !themeToggle.dataset.wired) {
+      themeToggle.dataset.wired = "1";
+      themeToggle.onchange = function () {
+        const next = themeToggle.checked ? "light" : "dark";
+        applyTheme(next);
+        const mode = document.querySelector(".theme-toggle__mode");
+        if (mode) mode.textContent = next;
       };
     }
 

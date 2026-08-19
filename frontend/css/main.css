@@ -97,6 +97,67 @@ a:hover { text-decoration: underline; color: var(--blue); }
   box-shadow: 0 0 10px var(--green);
 }
 
+.sidebar-theme {
+  padding: 0 0.65rem 0.35rem;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+}
+
+.theme-toggle__label {
+  text-transform: lowercase;
+}
+
+.theme-toggle__input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.theme-toggle__track {
+  position: relative;
+  width: 34px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-3);
+  transition: background 0.2s ease;
+}
+
+.theme-toggle__thumb {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--text);
+  transition: transform 0.2s ease;
+}
+
+.theme-toggle__input:checked + .theme-toggle__track {
+  background: #388bfd55;
+}
+
+.theme-toggle__input:checked + .theme-toggle__track .theme-toggle__thumb {
+  transform: translateX(16px);
+}
+
+.theme-toggle__mode {
+  color: var(--dim);
+  min-width: 2.5rem;
+}
+
 .sidebar-heading {
   margin: 0.85rem 0.65rem 0.25rem;
   color: var(--dim);
