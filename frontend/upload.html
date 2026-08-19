@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      try {
+        document.documentElement.setAttribute(
+          "data-theme",
+          localStorage.getItem("fs_theme") === "light" ? "light" : "dark"
+        );
+      } catch (e) {}
+    </script>
+    <meta name="color-scheme" content="dark light" />
+    <title>file-server · upload</title>
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+  <body data-page="upload">
+    <div class="app" id="app-shell"></div>
+    <div id="page-body" hidden>
+      <div class="panel">
+        <h1>upload</h1>
+        <p class="subtitle">POST /api/upload · multipart · any logged-in user</p>
+        <div id="alert" class="alert" hidden></div>
+        <form id="upload-form" class="form">
+          <label>destination path <input id="upload-path" type="text" placeholder="Product/version/..." /></label>
+          <label>files <input id="file" type="file" multiple required /></label>
+          <label>comment <textarea id="comment" rows="3"></textarea></label>
+          <button type="submit">./upload</button>
+        </form>
+      </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

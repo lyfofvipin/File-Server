@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      try {
+        document.documentElement.setAttribute(
+          "data-theme",
+          localStorage.getItem("fs_theme") === "light" ? "light" : "dark"
+        );
+      } catch (e) {}
+    </script>
+    <meta name="color-scheme" content="dark light" />
+    <title>file-server · login</title>
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+  <body data-page="login">
+    <div class="login-wrap">
+      <div class="panel login-card">
+        <div class="brand" style="padding-left:0"><span class="brand-dot"></span>file-server login</div>
+        <p class="subtitle">API key session · password or paste a key (nothing kept but the key)</p>
+        <div id="api-status" class="status"></div>
+        <div id="alert" class="alert" hidden></div>
+        <form id="login-form" class="form">
+          <label>username <input id="username" type="text" autocomplete="username" /></label>
+          <label>password <input id="password" type="password" autocomplete="current-password" /></label>
+          <p class="subtitle" style="margin:0">— or —</p>
+          <label>API key <input id="api-key" type="password" autocomplete="off" placeholder="fs_….…" /></label>
+          <button type="submit">./login</button>
+        </form>
+        <p class="subtitle" style="margin-top:1rem">
+          <a id="register-link" href="/register">register</a>
+          · default smoke user: <code>admin</code> / <code>admin</code>
+        </p>
+      </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

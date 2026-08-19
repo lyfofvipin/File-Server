@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+python-multipart
+sqlmodel
+pydantic-settings
+bcrypt
+Pillow
+pillow-heif
+email-validator

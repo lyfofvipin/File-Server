@@ -1,526 +1,269 @@
 # File-Server
 
-This application is developed for giving some extra functionality to your file system you can display your entire file system via this application and it gives you multiple ways to interact like API, GUI, CLI.
+## API / GUI split (plugin mode)
 
-We have 2 type of user in this application one has a role of QE ( Tester ) and anther has role of developer, A user with QE role can upload files and downloads but a user with developer access can only download files. The application by default support only `.xml` and `.gz` file but you can always add more type by changing the values in [config.py](https://github.com/lyfofvipin/File-Server/blob/master/src/config.py).
-This app is developed using Python's Flask module.
-The work of this app is very simple It let you Upload, download and Replace Files ( via WUI, CLI and API's ).
+The repo now includes a separable backend and frontend:
 
-# A Simple UseCase
+- [`backend/`](backend/) — FastAPI only (`/api/*`)
+- [`frontend/`](frontend/) — static terminal-style UI that talks **only** to those APIs
 
-In our case my teams are working in different regions across the globe so we need to share some result files with the developers and tester so we use it's WUI to share files with them,. 
-In our Automaton we use it's CLI feature to pass the flags and Perform operations on the files. App has API's those are running on the Server so user can hit them also for Uploading and Downloading files.
+### Architecture
 
+```mermaid
+flowchart TB
+  subgraph clients [Clients]
+    Browser[Browser FE]
+    CLI[file_server CLI]
+  end
 
-# Deployment Step
-## Want to customise some fields
-File-Server has it's own default settings but you can change them according to your use case.
-all the settings are saved in a file name as [config.py](https://github.com/lyfofvipin/File-Server/blob/master/src/config.py)
-Here a few settings you can change.
+  subgraph frontendHost [Frontend host any]
+    StaticUI[Static HTML/JS/CSS]
+    ConfigJS["config.js apiBaseUrl"]
+  end
 
-`config_dir` --> This looks like a simple Python dictatory but it plays a very vital role in File-Server. So the backend code check this variable and create a similar folder structure in the system. ( This make the process bit faster as It do not need to setup any database for the files )
+  subgraph backendHost [Backend host any]
+    FastAPI[FastAPI /api routes]
+    Routers[routers: health auth account files]
+    Auth[API key + Basic auth]
+    DB[(site.db users / keys)]
+    FS[(result_base_dir_path)]
+  end
 
-`port` --> This variable's value is used to decide that on which port of the system will be use by File-Server
-
-`supported_file_extension` --> This is a list that contains the extensions that will be allowed by the file-server. ( like by default it any type of files as it's `[]` ) put file extension in the same to support limited file types ex : `["xml", "png", "pdf"]` .
-
-`result_base_dir_path` --> This is a string where File-Server store all the files and create all dictatory on the basic of `config_dir` you can update it's value if you want to use some another dictatory.
-
-`extension_want_to_open`  --> By default File-Server directly download all type of files. But there are some files like `.text`, `.pdf` those can directly be opened in a browser.
-So if the value of this variable is kept `[]` it will download the files, or you can pass a list of extensions you want to be open in browser like this `["mp4"]`.
-
-`create_file_structure` --> So File-Server create a similar directory structure as `config_dir` but if you don't want that to happen you can just set it's value to `False`.
-
-`non_supported_file_extension` --> You can use this option to define the list of files you do not want to be uploaded on the server.
-
-`skip_product_version_creation_for_products` --> This variable has 3 supported values. `[]` `empty list` means no changes, `["*"]` `"*"` a string with a `*` means during File-Server directory creation deployment process will not create Product versions for any projects, `["xyz product", "abc product"]` a list of products In this case during File-Server directory creation deployment process will not create Product versions for the given projects.
-
-`allow_registractions`  --> This Option will enable and disable the registrations if True then File-Server will allow you to register new users, If False it won't open the `/register` url anymore.
-\
-\
-\
-To deploy the app you can run this [script](https://github.com/lyfofvipin/File-Server/blob/master/deploy_on_host.sh) or if you want to deploy on container then use this [script](https://github.com/lyfofvipin/File-Server/blob/master/deploy_in_container.sh).
-`Note: By default File-Server run on port 5000`
-
-## Available URL
-`/` or `/home`  This URL will show all the **directories** available in `result_base_dir_path` variable in [file](https://github.com/lyfofvipin/File-Server/blob/master/src/config.py).
-
-`/about`    This URL will show you the about page currently It's just the application description and the Documentation.
-
-`/account`  This URL will show you the information of specific User.
-
-`/upload`   This URL will only visible to User with QE role and from here you can upload files. (Auth Required)
-
-`/login`    This URL will take you to login page and ask you to enter _username_ and _password_.
-
-`/register` This URL will help you in registering a new User.
-
-`/home/<path:>` This URL is a dynamic URL It based on the file and directories available in system. (Auth Required)
-
-`/replace` This URL will use to replace a file which is already on the File Server. (Auth Required)
-
-
-## Available API
-`/api`      This API will give similar output as `/home` but in JSON format.
-
-`/api/download` This API will list all the files available for download on the basic of given parameters and can download any file for you. (Auth Required)
-
-`/api/upload`   This API will upload file on the basic of given parameters. (Auth Required)
-
-`/api/replace`   This API will Replace file on the File Server. (Auth Required)
-
-### Available parameters for APIs
-
-
-Products --> `It could be any string contains Product Names`
-
-**Example product Product2**
-
-Product Versions --> `It could be any string contain Product version like 01, 02 or any Values ..`
-
-**Example version 01**
-
-Sub Product Names -->  `It could be any string contain Sub Product Names`
-
-**Example sub_prod Sub_Product1**
-
-Category Name --> `It could be any string contain Category Names`
-
-**Example Category category4**
-
-Sub Category Names --> `It could be any string contains Sub Category Names`
-
-**Example sub_category sub_category_3**
-
-File Names --> This could be any name available on system which you want to upload or download.
-
-**Example file file_name.[xml|gz]**
-
-While downloading file you can pass file number also
-
-**Example file 1**
-
-file_to_replace --> For Replace API we use this option to give the name of the file we want to replace.
-
-**Example file_to_replace file_name.[xml|gz]**
-
-new_file --> This option is again used by replace api to pass the new file.
-
-**Example new_file file_name.[xml|gz]**
-
-file_number --> This option is optional for replace api. ( If you have more then one file on the File Server use this to pass the file number. )
-
-**Example file_number 1**
-
-## Setup CLI
-
-Below command will setup CLI for you
-
-*NOTE: CLI is not supported on Windows as of now.*
-
-`sudo curl https://raw.githubusercontent.com/lyfofvipin/File-Server/master/src/file_server -o /usr/bin/file-server; sudo chmod 777 /usr/bin/file-server`
-
-Once you are done with CLI setup command update the `Fs_Host` value in file `/usr/bin/file-server` with the IP/Hostname of server where the File-Server is hosted :)
-
-## How CLI Works
-Help for the command `file-server`
-
-```
-[lyfofvipin@kvy File-Server]$ file_server 
-Usage: file_server [OPTIONS] COMMAND [ARGS]...
-
-Options:
-  --help  Show this message and exit.
-
-Commands:
-  download  This option is use to download files.
-  replace   This option is use to replace a file on the File Server.
-  upload    This option is use to upload files.
+  Browser --> StaticUI
+  StaticUI --> ConfigJS
+  ConfigJS -->|"HTTP JSON / multipart"| FastAPI
+  CLI -->|"HTTP Basic or API key /api"| FastAPI
+  FastAPI --> Routers
+  Routers --> Auth
+  Routers --> DB
+  Routers --> FS
 ```
 
-Help for `download` Command:
-```
-[lyfofvipin@kvy File-Server]$ file_server download --help
-Usage: file_server download [OPTIONS]
+```bash
+# Terminal 1 — backend (any host)
+cd backend && pip install -r requirements.txt && python run.py
 
-  This option is use to download files.
-
-Options:
-  -P, --password TEXT       Pass User Password or you can export as variable
-                            FS_PASSWORD
-  -U, --username TEXT       Pass Username or you can export as variable
-                            FS_USERNAME
-  -p, --product TEXT        Pass any product Value
-  -v, --version TEXT        Pass Product Version Value
-  -sp, --sub_prod TEXT      Pass Sub Product version, Value
-  -c, --category TEXT       Pass Category Value
-  -sc, --sub_category TEXT  Pass Sub Category Value
-  --comment TEXT            Pass the comments for the given file/files
-  -f, --file TEXT           File name you want to download from the file
-                            server.
-  --help                    Show this message and exit.
+# Terminal 2 — frontend
+# edit frontend/config.js → apiBaseUrl if the API is remote
+cd frontend && python serve.py
 ```
 
-Help for `upload` Command:
+Open `http://localhost:8080` and set `window.FILE_SERVER.apiBaseUrl` in [`frontend/config.js`](frontend/config.js) to point at any backend host. Details: [`backend/README.md`](backend/README.md), [`frontend/README.md`](frontend/README.md).
 
-```
-[lyfofvipin@kvy File-Server]$ file_server upload --help
-Usage: file_server upload [OPTIONS]
+Frontend features (parity with classic GUI): browse, upload, download, replace, rename, delete, preview/thumbnail, login/register, account/password, about.
 
-  This option is use to upload files.
+---
 
-Options:
-  -P, --password TEXT       Pass User Password or you can export as variable
-                            FS_PASSWORD
-  -U, --username TEXT       Pass Username or you can export as variable
-                            FS_USERNAME
-  -p, --product TEXT        Pass any product value
-  -v, --version TEXT        Pass Product Version Value
-  -sp, --sub_prod TEXT      Pass Sub Product version
-  -c, --category TEXT       Pass Category value
-  -sc, --sub_category TEXT  Pass Sub Category value
-  --need_url TEXT  If true then it will only return the url where the file is uploaded
-  -f, --file TEXT           file you want to upload on The File-Server
-  --help                    Show this message and exit.
-```
+This application extends how you browse and share files on a server: use the **terminal-style web UI**, **REST API** (Swagger at `/docs`), or **CLI** (`file_server`).
 
-Help for `replace` Command:
+**Current stack:** [`backend/`](backend/) is **FastAPI + SQLModel** (API-only). [`frontend/`](frontend/) is static HTML/JS that talks only to `/api/*`. The classic Flask monolith under [`src/`](src/) is legacy; new work uses the split layout above.
 
-```
-[lyfofvipin@kvy File-Server]$ file_server replace --help
-Usage: file_server replace [OPTIONS]
+**Users & permissions:** Log in with username/password (session API key) or a long-lived API key. Any **logged-in user** can upload, replace, rename, and mkdir. Delete is gated by `allow_delete` in config.
 
-  This option is use to replace a file on the File Server.
+**File types:** By default all extensions are allowed (`supported_file_extension` is `[]`). Restrict types via [`backend/src/config.py`](backend/src/config.py) or env vars such as `FS_SUPPORTED_FILE_EXTENSION` / `FS_NON_SUPPORTED_FILE_EXTENSION`.
 
-Options:
-  -P, --password TEXT      Pass User Password or you can export as variable
-                           FS_PASSWORD
+# A simple use case
 
-  -U, --username TEXT      Pass Username or you can export as variable
-                           FS_USERNAME
+Teams in different regions share build artifacts and test results through the **web UI** (`:8080`). Automation uses the **REST API** (`:5000`, Swagger at `/docs`) with API keys or HTTP Basic. Folders under `result_base_dir_path` are browsed by **path** (e.g. `Product1/01/Sub_Product1/category1`) instead of separate `product` / `version` query flags.
 
-  -o, --old_file TEXT      Pass Old file name you want to replace.
-  -f, --file_name TEXT     New file you want to upload
-  -fn, --file_number TEXT  This is a optional flag if there are multiple files
-                           with the same name then you can use this to pass
-                           the file number you want to replace.
-  --comment TEXT            Pass the comments for the given file/files
-  --help                   Show this message and exit.
+---
+
+# Deployment
+
+## Quick start (host)
+
+```bash
+# Backend — API on :5000
+cd backend
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+export FS_RESULT_BASE_DIR_PATH=/path/to/share   # optional
+python run.py
+
+# Frontend — UI on :8080
+cd frontend
+# edit config.js → apiBaseUrl if backend is not localhost:5000
+python serve.py
 ```
 
-### Examples:
-Here are the examples of command `file-server` for download, upload and replacing files:
+Or use [`deploy_on_host.sh`](deploy_on_host.sh) as a starting point (adjust paths and env vars).
 
-Note: *I have export the username and passwords as Shell Environment Variables so I am not using -P and -U flags.*
+## Create a user
 
-#### Listing and Downloading files:
-Listing all Products:
-```
-[lyfofvipin@kvy File-Server]$ file_server download
-{
-  "aviable_data_on_path in formet 'file_name': 'file_comments'": {
-    "Product1": "", 
-    "Product2": "", 
-    "Product3": "", 
-    "Product4": ""
-  }
-}
-```
+Register via the UI when `allow_registrations` is enabled.
 
-Listing files of a specific Product:
-```
-[lyfofvipin@kvy File-Server]$ file_server download --product Product1
-{
-  "aviable_data_on_path in formet 'file_name': 'file_comments'": {
-    "01": "", 
-    "02": "", 
-    "test1.xml": "Test Comment for the file"
-  }
-}
-```
+## Containers
 
-Listing files of a specific Product Version:
-```
-[lyfofvipin@kvy File-Server]$ file_server download --product Product1 --version 02
-{
-  "aviable_data_on_path in formet 'file_name': 'file_comments'": {
-    "Sub_Product1": "", 
-    "Sub_Product2": "", 
-    "category1": "", 
-    "category2": ""
-  }
-}
-```
+| Script | Service | Port |
+|--------|---------|------|
+| [`deployments/deploy_backend_in_container.sh`](deployments/deploy_backend_in_container.sh) | FastAPI backend | 5000 |
+| [`deployments/deploy_frontend_in_container.sh`](deployments/deploy_frontend_in_container.sh) | Static frontend | 8080 (check image) |
+| [`deployments/cli/build.sh`](deployments/cli/build.sh) | CLI client image (no server) | — |
 
-Listing files of a specific Sub Product:
-```
-[lyfofvipin@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 
-{
-  "aviable_data_on_path in formet 'file_name': 'file_comments'": {
-    "category1": "", 
-    "category2": "", 
-    "category3": "", 
-    "category4": ""
-  }
-}
+CLI image docs: [`deployments/cli/README.md`](deployments/cli/README.md). Upload/replace need a volume mount, e.g. `-v "$(pwd):/work:Z" -w /work`.
+
+Mount your data directory when running the backend container, e.g. `-v /host/share:/data:Z` and set `FS_RESULT_BASE_DIR_PATH=/data`.
+
+**Note:** Backend defaults to port **5000**; frontend defaults to **8080**.
+
+---
+
+# Configuration
+
+Settings live in [`backend/src/config.py`](backend/src/config.py) (`Settings` class). Override with environment variables prefixed `FS_` or a `backend/.env` file.
+
+| Setting | Env var | Description |
+|---------|---------|-------------|
+| `result_base_dir_path` | `FS_RESULT_BASE_DIR_PATH` | Filesystem root for browse/upload/download |
+| `port` | `FS_PORT` | API listen port (default `5000`) |
+| `allow_registrations` | `FS_ALLOW_REGISTRATIONS` | Allow `POST /api/register` and UI register page |
+| `allow_delete` | `FS_ALLOW_DELETE` | Allow delete API and UI delete actions |
+| `enable_api_keys` | `FS_ENABLE_API_KEYS` | API-key login and account key management |
+| `supported_file_extension` | `FS_SUPPORTED_FILE_EXTENSION` | Allow-list extensions; empty = all types |
+| `non_supported_file_extension` | `FS_NON_SUPPORTED_FILE_EXTENSION` | Block-list extensions |
+| `cors_origins` | `FS_CORS_ORIGINS` | Browser origins allowed to call the API |
+| `database_url` | `FS_DATABASE_URL` | SQLite URL; default `backend/src/site.db` |
+
+---
+
+# Frontend URLs (port 8080)
+
+The frontend uses **pretty URLs** (no `.html` in the address bar). Point [`frontend/config.js`](frontend/config.js) at your API:
+
+```js
+window.FILE_SERVER = { apiBaseUrl: "http://127.0.0.1:5000" };
 ```
 
-Listing files of a specific Category:
-```
-[lyfofvipin@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 --category category4
-{
-  "aviable_data_on_path in formet 'file_name': 'file_comments'": {
-    "sub_category_1": ""
-  }
-}
+| URL | Purpose |
+|-----|---------|
+| `/` | Browse home (`~` = `result_base_dir_path`) |
+| `/about` | README / architecture |
+| `/login` | Login (password → session API key) |
+| `/register` | Register (*if enabled*) |
+| `/account` | Profile, password, API keys |
+| `/upload` | Upload files (auth required) |
+| `/replace` | Replace by file name (auth required) |
+| `/delete` | Delete by file name (*if `allow_delete`*) |
+
+Browse uses `?path=folder/subfolder` on the home URL. Sidebar **Places** mirror these routes.
+
+---
+
+# REST API (port 5000)
+
+Interactive docs: `http://<host>:5000/docs`
+
+## Authentication
+
+1. **API key (browser / automation)** — `POST /api/login` with `{username, password}` returns a `token` (`fs_…` session key), or send an existing key. Use `Authorization: Bearer <key>` or header `X-API-Key: <key>`.
+2. **HTTP Basic** — still supported for the CLI and automation (`username` + `password`).
+
+Create long-lived keys under `/api/account/api-keys` (revoked when you change password or username/email).
+
+## Endpoints
+
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET | `/api/health` | no | Liveness |
+| GET | `/api/meta` | no | `allow_registrations`, `allow_delete`, `result_base_dir_path`, … |
+| GET | `/api/about` | no | README markdown |
+| POST | `/api/login` | no | Password or `{api_key}` login |
+| POST | `/api/register` | no* | Create account (*if enabled*) |
+| GET | `/api/me` | yes | Current user |
+| POST | `/api/account` | yes | Update username/email (revokes all API keys) |
+| POST | `/api/account/password` | yes | Change password (revokes all API keys) |
+| GET/POST/DELETE | `/api/account/api-keys` | yes | Manage API keys |
+| GET | `/api` | no | List top-level folders (products) |
+| GET | `/api/download?path=&file=` | yes | List path or download file |
+| GET | `/api/preview?path=` | yes | Inline file preview |
+| GET | `/api/thumbnail?path=` | yes | JPEG thumbnail (images/video) |
+| POST | `/api/upload?path=&comment=` | yes | Multipart upload (`file` field, multi-file OK) |
+| POST | `/api/replace?file_to_replace=&file_number=` | yes | Replace file (multipart `file`) |
+| POST | `/api/rename` | yes | JSON `{path, new_name}` |
+| POST | `/api/mkdir` | yes | JSON `{path, name}` |
+| POST | `/api/delete` | yes* | JSON `{path}` or `{file_to_delete, file_number}` (*if `allow_delete`*) |
+
+## Path-based parameters
+
+Paths are relative to `result_base_dir_path`, using `/` separators (same idea as folders on disk):
+
+| Concept | Example path |
+|---------|----------------|
+| Product (top folder) | `Product1` |
+| Product + version | `Product1/01` |
+| Deeper tree | `Product1/01/Sub_Product1/category3/sub_category_3` |
+| File inside path | use `path` + `file` on download, or full file path on rename/delete |
+
+**List root folders**
+
+```bash
+curl -s http://127.0.0.1:5000/api
+# {"products":["Product1","Product2",...]}
 ```
 
-Listing files of a specific Sub Category:
+**List a directory**
 
-If you don't have any files on given values it will return a blank string.
-
-```
-[lyfofvipin@kvy File-Server]$ file_server download --product Product1 --version 02 --sub_prod Sub_Product1 --category category4 --sub_category sub_category_1
-{
-  "aviable_data_on_path in formet 'file_name': 'file_comments'": {}
-}
+```bash
+curl -s -u admin:secret \
+  'http://127.0.0.1:5000/api/download?path=Product1/01'
 ```
 
-```
-[lyfofvipin@kvy File-Server]$ file_server download --product Product1 --version 01 --sub_prod Sub_Product1 --category category1 --sub_category sub_category_1
-{
-  "aviable_data_on_path": [
-    "test1.xml": "Test Comment for the file1",
-    "test2.xml": "Test Comment for the file2"
-  ]
-}
+**Download a file**
+
+```bash
+curl -s -u admin:secret -OJ \
+  'http://127.0.0.1:5000/api/download?path=Product1/01&file=report.xml'
 ```
 
-Downloading files from the File Server:
-```
-[lyfofvipin@kvy File-Server]$ file_server download --product Product1 --version 01 --sub_prod Sub_Product1 --category category1 --sub_category sub_category_1 --file test_file.gz
-Downloading......
-test_file.gz
-Download Compleat
+**Upload with API key**
+
+```bash
+TOKEN=$(curl -s -X POST http://127.0.0.1:5000/api/login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"admin","password":"secret"}' | jq -r .token)
+
+curl -s -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@report.xml" \
+  'http://127.0.0.1:5000/api/upload?path=Product1/01&comment=CI%20run'
 ```
 
-#### Uploading files via CLI:
+**Replace a file**
 
-Uploading files to a specific Product:
-```
-[lyfofvipin@kvy File-Server]$ file_server upload --product Product1 --file file1.xml
-Uploading......
-file1.xml
-{
-  "message": "File Uploaded successfully"
-}
+```bash
+curl -s -X POST -u admin:secret \
+  -F "file=@report-new.xml" \
+  'http://127.0.0.1:5000/api/replace?file_to_replace=report.xml&file_number=1'
 ```
 
-Uploading files with a comment Product:
-```
-[lyfofvipin@kvy File-Server]$ file_server upload --product Product1 --file file1.xml --comment "This is the test comment added to file1"
-Uploading......
-file1.xml
-{
-  "message": "File Uploaded successfully"
-}
+**Create folder**
+
+```bash
+curl -s -X POST -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"path":"Product1/01","name":"new_folder"}' \
+  http://127.0.0.1:5000/api/mkdir
 ```
 
-Uploading files to a specific Product Version:
-```
-[lyfofvipin@kvy File-Server]$ file_server upload --product Product1 --version 01 --file file1.xml
-Uploading......
-file1.xml
-{
-  "message": "File Uploaded successfully"
-}
+---
+
+# CLI and automation
+
+Single script [`file_server`](file_server) — install deps once:
+
+```bash
+pip install -r requirements-cli.txt
+chmod +x file_server
+# optional: sudo cp file_server /usr/local/bin/file-server
 ```
 
-Uploading files while using need_url flag:
-```
-[lyfofvipin@kvy File-Server]$ file_server upload --product Product1 --version 01 --file file1.xml
-/home/Product1/file1.xml
-```
+Auth: **API key** (`-k` / `FS_API_KEY`) or **Basic** (`-U` / `-P` or `FS_USERNAME` / `FS_PASSWORD`). Host: `FS_HOST` or `--host`.
 
+```bash
+./file_server download -k "$FS_API_KEY"
+./file_server download --path Product1/01 -f report.xml
+./file_server upload --path Product1/01 -f report.xml --comment "CI run"
+./file_server replace -o report.xml -f report-new.xml
+```
+---
 
-Uploading files to a specific Sub Product:
-```
-[lyfofvipin@kvy File-Server]$ file_server upload --product Product1 --version 01 --sub_prod Sub_Product2 --file file1.xml
-Uploading......
-file1.xml
-{
-  "message": "File Uploaded successfully"
-}
-```
-
-Uploading files to a specific Category:
-```
-file_server upload --product Product1 --version 01 --sub_prod Sub_Product1 --category category3 --file file1.xml
-Uploading......
-file1.xml
-{
-  "message": "File Uploaded successfully"
-}
-```
-
-Uploading files to a specific Sub Category:
-```
-[lyfofvipin@kvy File-Server]$ file_server upload --product Product1 --version 01 --sub_prod Sub_Product1 --category category3 --sub_category sub_category_3 --file file1.xml
-Uploading......
-file1.xml
-{
-  "message": "File Uploaded successfully"
-}
-```
-
-Uploading multiple files:
-```
-file_server upload --product Product1 --version 01 -U lyfofvipin -P test -f file1.xml -f file2.xml -f file3.xml
-Uploading...... 
-file1.xml
-{
-  "message": "File Uploaded successfully"
-}
-
-Uploading...... 
-file2.xml
-{
-  "message": "File Uploaded successfully"
-}
-
-Uploading...... 
-file3.xml
-{
-  "message": "File Uploaded successfully"
-}
-
-```
-
-What if you miss some parameters like here I am trying to upload a file with wrong values.
-```
-file_server upload --product Product1 --version 01 --sub_prod Sub_Product1 --sub_category sub_category_3 --file file1.xml
-Uploading......
-{
-  "Message": "Looks like you enter something wrong. Please try again.", 
-  "Supported Version": {
-    "Product1": {
-      "": {
-        "category1": [
-          "sub_category_1"
-        ], 
-        "category2": [
-          "sub_category_1"
-        ]
-      }, 
-      "Sub_Product1": {
-        "category1": [
-          "sub_category_1", 
-          "sub_category_2", 
-          "sub_category_3", 
-          "sub_category_4"
-        ], 
-        "category2": [
-          "sub_category_1", 
-          "sub_category_2", 
-          "sub_category_3"
-        ], 
-        "category3": [
-          "sub_category_1", 
-          "sub_category_2"
-        ], 
-        "category4": [
-          "sub_category_1"
-        ]
-      }, 
-      "Sub_Product2": {
-        "category1": [
-          "sub_category_1"
-        ], 
-        "category2": [
-          "sub_category_1"
-        ]
-      }
-    }, 
-    "Product2": {
-      "": {
-        "category1": []
-      }
-    }, 
-    "Product3": {
-      "": {}
-    }, 
-    "Product4": {}
-  }
-}
-
-```
-
-#### Replacing files via CLI:
-
-Replacing File if multiple files available on the server:
-
-In such kind of scenario you need to pass 
-```
-[lyfofvipin@kvy File-Server]$ file_server replace --old_file file1.xml --file_name file2.xml 
-Replacing file2.xml ....
-{
-  "Found multiple files, pass the `file_number` with which you want to replace the file from the given list: ": [
-    "1 --> Product1/file1.xml", 
-    "2 --> Product1/01/file1.xml", 
-    "3 --> Product1/01/Sub_Product1/category3/file1.xml", 
-    "4 --> Product1/01/Sub_Product1/category3/sub_category_3/file1.xml", 
-    "5 --> Product1/01/Sub_Product2/file1.xml"
-  ]
-}
-```
-
-Using __file_number__ to replace a specific file:
-```
-[lyfofvipin@kvy File-Server]$ file_server replace --old_file file1.xml --file_number 5 --file_name file2.xml 
-Replacing file2.xml ....
-{
-  "message": "File Replaced Successfully."
-}
-```
-
-```
-[lyfofvipin@kvy File-Server]$ file_server replace --old_file file1.xml --file_name file2.xml 
-Replacing file2.xml ....
-{
-  "Found multiple files, pass the `file_number` with which you want to replace the file from the given list: ": [
-    "1 --> Product1/file1.xml", 
-    "2 --> Product1/01/file1.xml", 
-    "3 --> Product1/01/Sub_Product1/category3/file1.xml", 
-    "4 --> Product1/01/Sub_Product1/category3/sub_category_3/file1.xml"
-  ]
-}
-```
-
-If you only have 1 file available then it will auto replace that file without __file_number__ parameter.
-```
-[lyfofvipin@kvy File-Server]$ file_server replace --old_file file2.xml --file_name file3.xml 
-Replacing file3.xml ....
-{
-  "message": "File Replaced Successfully."
-}
-```
-
-Replacing the file with updating the comment.
-```
-[lyfofvipin@kvy File-Server]$ file_server replace --old_file file2.xml --file_name file3.xml --comment "This is the test comment added to file3" 
-Replacing file3.xml ....
-{
-  "message": "File Replaced Successfully."
-}
-```
-
-If the file is not on the FileServer:
-```
-[lyfofvipin@kvy File-Server]$ file_server replace --old_file file8.xml --file_name file3.xml 
-Replacing file3.xml ....
-{
-  "message": "File not found on the File Server."
-}
-```
-
-**EOF**

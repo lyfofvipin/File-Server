@@ -1,0 +1,294 @@
+#!/usr/bin/env python3
+"""File-Server CLI — path-based FastAPI backend (/api/*)."""
+from __future__ import annotations
+
+import json
+import os
+import sys
+from typing import Optional, Tuple
+
+try:
+    import click
+    import requests
+except ImportError:
+    raise SystemExit("Missing dependencies. Install with: pip install click requests")
+
+
+class Auth:
+    def __init__(self, username: str = "", password: str = "", api_key: str = ""):
+        self.username = username or ""
+        self.password = password or ""
+        self.api_key = (api_key or "").strip()
+
+    @classmethod
+    def from_env_and_opts(cls, username: str, password: str, api_key: str) -> "Auth":
+        if os.environ.get("FS_API_KEY"):
+            api_key = os.environ.get("FS_API_KEY", "")
+        if os.environ.get("FS_USERNAME"):
+            username = os.environ.get("FS_USERNAME", "")
+        if os.environ.get("FS_PASSWORD"):
+            password = os.environ.get("FS_PASSWORD", "")
+        return cls(username=username, password=password, api_key=api_key)
+
+    def headers(self) -> dict:
+        if self.api_key:
+            return {"Authorization": "Bearer " + self.api_key}
+        return {}
+
+    def basic(self) -> Optional[Tuple[str, str]]:
+        if self.api_key:
+            return None
+        if self.username and self.password:
+            return (self.username, self.password)
+        return None
+
+    def ensure(self) -> None:
+        if self.api_key or (self.username and self.password):
+            return
+        raise click.ClickException(
+            "Auth required: set FS_API_KEY or FS_USERNAME+FS_PASSWORD, "
+            "or pass --api-key / -U and -P."
+        )
+
+
+def normalize_path(path: Optional[str]) -> str:
+    if not path:
+        return ""
+    return str(path).strip().strip("/")
+
+
+def api_request(method: str, url: str, auth: Auth, **kwargs) -> requests.Response:
+    auth.ensure()
+    headers = kwargs.pop("headers", {})
+    headers.update(auth.headers())
+    return requests.request(
+        method,
+        url,
+        headers=headers,
+        auth=auth.basic(),
+        timeout=kwargs.pop("timeout", 120),
+        **kwargs,
+    )
+
+
+def print_json_or_text(resp: requests.Response) -> None:
+    ct = resp.headers.get("content-type", "")
+    if "application/json" in ct:
+        try:
+            print(json.dumps(resp.json(), indent=2))
+            return
+        except ValueError:
+            pass
+    print(resp.text)
+
+
+@click.group()
+@click.option(
+    "--host",
+    envvar="FS_HOST",
+    default="http://localhost:5000",
+    show_default=True,
+    help="API host (without /api), e.g. http://127.0.0.1:5000",
+)
+@click.pass_context
+def main_fs_cli(ctx: click.Context, host: str) -> None:
+    """File-Server CLI (download, upload, replace)."""
+    ctx.ensure_object(dict)
+    ctx.obj["api_base"] = host.rstrip("/") + "/api"
+
+
+@main_fs_cli.command()
+@click.option("--password", "-P", default="", help="Password (or FS_PASSWORD)")
+@click.option("--username", "-U", default="", help="Username (or FS_USERNAME)")
+@click.option(
+    "--api-key",
+    "-k",
+    default="",
+    help="API key fs_… (or FS_API_KEY); overrides username/password",
+)
+@click.option(
+    "--path",
+    default="",
+    help="Directory path under result_base_dir_path (empty = list root)",
+)
+@click.option("--file", "-f", help="File name to download from --path")
+@click.pass_context
+def download(
+    ctx: click.Context,
+    password: str,
+    username: str,
+    api_key: str,
+    path: str,
+    file: Optional[str],
+) -> None:
+    """List folders/files or download a file (GET /api or /api/download)."""
+    auth = Auth.from_env_and_opts(username, password, api_key)
+    base = ctx.obj["api_base"]
+    rel = normalize_path(path)
+
+    if not rel and not file:
+        resp = api_request("GET", base, auth)
+        if not resp.ok:
+            print_json_or_text(resp)
+            sys.exit(1)
+        print_json_or_text(resp)
+        return
+
+    url = base + "/download"
+    params: dict = {}
+    if rel:
+        params["path"] = rel
+    if file:
+        params["file"] = file
+
+    resp = api_request("GET", url, auth, params=params)
+    if not resp.ok:
+        print_json_or_text(resp)
+        sys.exit(1)
+
+    ct = resp.headers.get("content-type", "")
+    if file and "application/json" not in ct:
+        out_name = os.path.basename(file)
+        with open(out_name, "wb") as fh:
+            fh.write(resp.content)
+        click.echo("Downloading……\n" + out_name)
+        click.echo("Download complete.")
+        return
+
+    print_json_or_text(resp)
+
+
+@main_fs_cli.command()
+@click.option("--password", "-P", default="", help="Password (or FS_PASSWORD)")
+@click.option("--username", "-U", default="", help="Username (or FS_USERNAME)")
+@click.option(
+    "--api-key",
+    "-k",
+    default="",
+    help="API key fs_… (or FS_API_KEY); overrides username/password",
+)
+@click.option("--path", default="", help="Destination directory path")
+@click.option("--comment", help="Sidecar comment for uploaded file(s)")
+@click.option(
+    "--need_url",
+    is_flag=True,
+    default=False,
+    help="Return upload URL path instead of JSON message",
+)
+@click.option(
+    "--file",
+    "-f",
+    multiple=True,
+    required=True,
+    help="Local file path(s) to upload",
+)
+@click.pass_context
+def upload(
+    ctx: click.Context,
+    password: str,
+    username: str,
+    api_key: str,
+    path: str,
+    comment: Optional[str],
+    need_url: bool,
+    file: tuple,
+) -> None:
+    """Upload file(s) to a path (POST /api/upload)."""
+    auth = Auth.from_env_and_opts(username, password, api_key)
+    base = ctx.obj["api_base"]
+    rel = normalize_path(path)
+    url = base + "/upload"
+    params: dict = {}
+    if rel:
+        params["path"] = rel
+    if comment:
+        params["comment"] = comment
+    if need_url:
+        params["need_url"] = "yes"
+
+    for file_path in file:
+        if not os.path.isfile(file_path):
+            raise click.ClickException("File not found: " + file_path)
+        file_name = os.path.basename(file_path.replace("\\", "/"))
+        with open(file_path, "rb") as fh:
+            if not need_url:
+                click.echo("Uploading……\n" + file_name)
+            resp = api_request(
+                "POST",
+                url,
+                auth,
+                params=params,
+                files={"file": (file_name, fh)},
+            )
+        if not resp.ok:
+            print_json_or_text(resp)
+            sys.exit(1)
+        print(resp.text)
+
+
+@main_fs_cli.command()
+@click.option("--password", "-P", default="", help="Password (or FS_PASSWORD)")
+@click.option("--username", "-U", default="", help="Username (or FS_USERNAME)")
+@click.option(
+    "--api-key",
+    "-k",
+    default="",
+    help="API key fs_… (or FS_API_KEY); overrides username/password",
+)
+@click.option(
+    "--old_file",
+    "-o",
+    required=True,
+    help="Basename of the file to replace (searched under the server root)",
+)
+@click.option("--file_name", "-f", required=True, help="Local path of the new file")
+@click.option(
+    "--file_number",
+    "-fn",
+    default="",
+    help="When multiple matches exist, pick by number (1-based)",
+)
+@click.option("--comment", help="Sidecar comment for the replacement file")
+@click.pass_context
+def replace(
+    ctx: click.Context,
+    password: str,
+    username: str,
+    api_key: str,
+    old_file: str,
+    file_name: str,
+    file_number: str,
+    comment: Optional[str],
+) -> None:
+    """Replace a file on the server (POST /api/replace)."""
+    auth = Auth.from_env_and_opts(username, password, api_key)
+    base = ctx.obj["api_base"]
+    url = base + "/replace"
+
+    if not os.path.isfile(file_name):
+        raise click.ClickException("File not found: " + file_name)
+
+    params = {"file_to_replace": old_file}
+    if file_number:
+        params["file_number"] = file_number
+    if comment:
+        params["comment"] = comment
+
+    upload_name = os.path.basename(file_name.replace("\\", "/"))
+    click.echo("Replacing with " + upload_name + " …")
+    with open(file_name, "rb") as fh:
+        resp = api_request(
+            "POST",
+            url,
+            auth,
+            params=params,
+            files={"file": (upload_name, fh)},
+        )
+    if not resp.ok:
+        print_json_or_text(resp)
+        sys.exit(1)
+    print_json_or_text(resp)
+
+
+if __name__ == "__main__":
+    main_fs_cli()

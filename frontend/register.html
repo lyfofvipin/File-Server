@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      try {
+        document.documentElement.setAttribute(
+          "data-theme",
+          localStorage.getItem("fs_theme") === "light" ? "light" : "dark"
+        );
+      } catch (e) {}
+    </script>
+    <meta name="color-scheme" content="dark light" />
+    <title>file-server · register</title>
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+  <body data-page="register">
+    <div class="login-wrap">
+      <div class="panel login-card">
+        <div class="brand" style="padding-left:0"><span class="brand-dot"></span>register</div>
+        <div id="alert" class="alert" hidden></div>
+        <form id="register-form" class="form">
+          <label>username <input id="username" type="text" required /></label>
+          <label>email <input id="email" type="email" required /></label>
+          <label>password <input id="password" type="password" required /></label>
+          <button type="submit">./register</button>
+        </form>
+        <p class="subtitle" style="margin-top:1rem"><a href="/login">back to login</a></p>
+      </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

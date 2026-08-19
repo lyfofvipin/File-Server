@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      try {
+        document.documentElement.setAttribute(
+          "data-theme",
+          localStorage.getItem("fs_theme") === "light" ? "light" : "dark"
+        );
+      } catch (e) {}
+    </script>
+    <meta name="color-scheme" content="dark light" />
+    <title>file-server · about</title>
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+  <body data-page="about">
+    <div class="app" id="app-shell"></div>
+    <div id="page-body" hidden>
+      <div class="panel">
+        <h1>about</h1>
+        <p class="subtitle">Architecture · API / GUI split</p>
+
+        <div class="arch-diagram" aria-label="Architecture diagram">
+          <svg viewBox="0 0 960 520" role="img" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#58a6ff"/>
+              </marker>
+              <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#161b22"/>
+                <stop offset="100%" stop-color="#0d1117"/>
+              </linearGradient>
+            </defs>
+
+            <!-- CLIENTS -->
+            <rect x="24" y="24" width="200" height="150" rx="10" fill="url(#g1)" stroke="#30363d"/>
+            <text x="124" y="48" text-anchor="middle" fill="#8b949e" font-family="ui-monospace,monospace" font-size="12">CLIENTS</text>
+            <rect x="44" y="64" width="160" height="40" rx="6" fill="#0f1419" stroke="#39c5cf"/>
+            <text x="124" y="89" text-anchor="middle" fill="#e6edf3" font-family="ui-monospace,monospace" font-size="13">Browser FE</text>
+            <rect x="44" y="116" width="160" height="40" rx="6" fill="#0f1419" stroke="#39c5cf"/>
+            <text x="124" y="141" text-anchor="middle" fill="#e6edf3" font-family="ui-monospace,monospace" font-size="13">file_server CLI</text>
+
+            <!-- FRONTEND -->
+            <rect x="300" y="24" width="220" height="150" rx="10" fill="url(#g1)" stroke="#30363d"/>
+            <text x="410" y="48" text-anchor="middle" fill="#8b949e" font-family="ui-monospace,monospace" font-size="12">FRONTEND HOST</text>
+            <rect x="320" y="64" width="180" height="40" rx="6" fill="#0f1419" stroke="#7ee787"/>
+            <text x="410" y="89" text-anchor="middle" fill="#e6edf3" font-family="ui-monospace,monospace" font-size="13">Static HTML/JS/CSS</text>
+            <rect x="320" y="116" width="180" height="40" rx="6" fill="#0f1419" stroke="#7ee787"/>
+            <text x="410" y="141" text-anchor="middle" fill="#e6edf3" font-family="ui-monospace,monospace" font-size="12">config.js → apiBaseUrl</text>
+
+            <!-- BACKEND -->
+            <rect x="600" y="16" width="336" height="260" rx="10" fill="url(#g1)" stroke="#30363d"/>
+            <text x="768" y="42" text-anchor="middle" fill="#8b949e" font-family="ui-monospace,monospace" font-size="12">BACKEND HOST</text>
+            <rect x="624" y="58" width="288" height="38" rx="6" fill="#0f1419" stroke="#58a6ff"/>
+            <text x="768" y="82" text-anchor="middle" fill="#e6edf3" font-family="ui-monospace,monospace" font-size="13">Flask /api routes</text>
+            <rect x="624" y="110" width="288" height="38" rx="6" fill="#0f1419" stroke="#58a6ff"/>
+            <text x="768" y="134" text-anchor="middle" fill="#e6edf3" font-family="ui-monospace,monospace" font-size="13">apis.py handlers</text>
+            <rect x="624" y="162" width="288" height="38" rx="6" fill="#0f1419" stroke="#d29922"/>
+            <text x="768" y="186" text-anchor="middle" fill="#e6edf3" font-family="ui-monospace,monospace" font-size="13">Basic auth + users DB</text>
+            <rect x="624" y="214" width="288" height="38" rx="6" fill="#0f1419" stroke="#f85149"/>
+            <text x="768" y="238" text-anchor="middle" fill="#e6edf3" font-family="ui-monospace,monospace" font-size="12">result_base_dir_path (FS)</text>
+
+            <!-- Browser → Frontend -->
+            <line x1="224" y1="84" x2="300" y2="84" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrow)"/>
+
+            <!-- Frontend → Backend (label above the gap) -->
+            <line x1="520" y1="84" x2="600" y2="76" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrow)"/>
+            <rect x="528" y="48" width="72" height="18" rx="4" fill="#0d1117" stroke="#30363d"/>
+            <text x="564" y="61" text-anchor="middle" fill="#8b949e" font-family="ui-monospace,monospace" font-size="10">HTTP JSON</text>
+
+            <!-- CLI → Backend routed UNDER frontend (no overlap) -->
+            <path d="M 204 156 L 204 200 L 600 200" fill="none" stroke="#58a6ff" stroke-width="1.75" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+            <rect x="340" y="206" width="110" height="18" rx="4" fill="#0d1117" stroke="#30363d"/>
+            <text x="395" y="219" text-anchor="middle" fill="#8b949e" font-family="ui-monospace,monospace" font-size="10">HTTP Basic /api</text>
+
+            <!-- Backend internal stack arrows -->
+            <line x1="768" y1="96" x2="768" y2="110" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <line x1="768" y1="148" x2="768" y2="162" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <line x1="768" y1="200" x2="768" y2="214" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+            <!-- DATA MODEL -->
+            <text x="24" y="310" fill="#8b949e" font-family="ui-monospace,monospace" font-size="12">DATA MODEL</text>
+            <rect x="24" y="324" width="210" height="120" rx="8" fill="#0f1419" stroke="#39c5cf"/>
+            <text x="129" y="350" text-anchor="middle" fill="#7ee787" font-family="ui-monospace,monospace" font-size="13">User</text>
+            <text x="40" y="378" fill="#8b949e" font-family="ui-monospace,monospace" font-size="11">id · username</text>
+            <text x="40" y="398" fill="#8b949e" font-family="ui-monospace,monospace" font-size="11">email · password</text>
+            <text x="40" y="418" fill="#8b949e" font-family="ui-monospace,monospace" font-size="11">auth → all write ops</text>
+
+            <line x1="234" y1="384" x2="300" y2="384" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrow)"/>
+            <rect x="246" y="362" width="42" height="16" rx="4" fill="#0d1117" stroke="#30363d"/>
+            <text x="267" y="374" text-anchor="middle" fill="#8b949e" font-family="ui-monospace,monospace" font-size="10">uses</text>
+
+            <rect x="300" y="324" width="230" height="120" rx="8" fill="#0f1419" stroke="#7ee787"/>
+            <text x="415" y="350" text-anchor="middle" fill="#7ee787" font-family="ui-monospace,monospace" font-size="13">FileServer API</text>
+            <text x="316" y="378" fill="#8b949e" font-family="ui-monospace,monospace" font-size="11">/api/upload · replace</text>
+            <text x="316" y="398" fill="#8b949e" font-family="ui-monospace,monospace" font-size="11">/api/mkdir · rename · delete</text>
+            <text x="316" y="418" fill="#8b949e" font-family="ui-monospace,monospace" font-size="11">/api/download · preview</text>
+
+            <path d="M 530 384 L 580 384 L 580 276 L 600 276" fill="none" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrow)"/>
+            <rect x="542" y="388" width="52" height="16" rx="4" fill="#0d1117" stroke="#30363d"/>
+            <text x="568" y="400" text-anchor="middle" fill="#8b949e" font-family="ui-monospace,monospace" font-size="10">stores</text>
+          </svg>
+        </div>
+
+        <p class="subtitle" style="margin-top:1.25rem">GET /api/about · README (mermaid diagrams render below)</p>
+        <div id="about-body" class="about-md">loading…</div>
+      </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/markdown.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

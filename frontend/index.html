@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      try {
+        document.documentElement.setAttribute(
+          "data-theme",
+          localStorage.getItem("fs_theme") === "light" ? "light" : "dark"
+        );
+      } catch (e) {}
+    </script>
+    <meta name="color-scheme" content="dark light" />
+    <title>file-server · browse</title>
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+  <body data-page="browse">
+    <div class="app" id="app-shell">
+      <aside class="sidebar" id="sidebar"></aside>
+      <div class="main">
+        <div class="terminal-bar">
+          <div class="traffic" title="Servers menu"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+          <div class="prompt">
+            <span class="api-endpoint" id="term-api"><span class="api-label">api</span><span class="api-arrow"> → </span><span class="api-url">…</span></span><span class="prompt-sep">:</span><span class="path" id="term-path"><a class="path-seg" href="index.html" title="Home">~</a></span>$
+          </div>
+          <div class="cd-wrap">
+            <input class="prompt-input" id="term-jump" placeholder="cd ~  or  cd folder/path" spellcheck="false" autocomplete="off" title="~ = result_base_dir_path (browse home)" />
+            <ul class="cd-suggest" id="cd-suggest" hidden></ul>
+          </div>
+        </div>
+        <div class="server-tabs" id="server-tabs"></div>
+        <div class="content" id="page-content">
+          <div id="page-body">
+            <div class="panel">
+              <h1>browse</h1>
+              <p class="subtitle">Terminal-style file browser over the backend API.</p>
+              <div class="toolbar">
+                <a class="btn" id="upload-here" href="upload.html">upload here</a>
+              </div>
+              <div id="alert" class="alert" hidden></div>
+              <table class="entry-table">
+                <thead>
+                  <tr><th>name</th><th>mtime</th><th>comment</th><th>actions</th></tr>
+                </thead>
+                <tbody id="entry-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
