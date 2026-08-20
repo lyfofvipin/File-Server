@@ -123,6 +123,9 @@ Settings live in [`backend/src/config.py`](backend/src/config.py) (`Settings` cl
 | `non_supported_file_extension` | `FS_NON_SUPPORTED_FILE_EXTENSION` | Block-list extensions |
 | `cors_origins` | `FS_CORS_ORIGINS` | Browser origins allowed to call the API |
 | `database_url` | `FS_DATABASE_URL` | SQLite URL; default `backend/src/site.db` |
+| `data_retention_days` | `FS_DATA_RETENTION_DAYS` | Delete files older than this many days (default `90`; `0` disables) |
+| `cleanup_interval_hours` | `FS_CLEANUP_INTERVAL_HOURS` | How often the retention sweep runs (default `24`) |
+| `cleanup_exclude_dirs` | `FS_CLEANUP_EXCLUDE_DIRS` | JSON list of share-relative dirs never cleaned, e.g. `["keep","Product1/golden"]` |
 
 ---
 

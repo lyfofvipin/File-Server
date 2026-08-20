@@ -27,6 +27,9 @@ Edit [`src/config.py`](src/config.py) (`Settings`) or set env vars with prefix `
 - `allow_registrations` / `allow_delete` / `enable_api_keys`
 - `secret_key`
 - `database_url` — optional; defaults to `backend/src/site.db`
+- `data_retention_days` — delete files older than N days (default `90`; `0` disables)
+- `cleanup_interval_hours` — retention sweep interval (default `24`)
+- `cleanup_exclude_dirs` — share-relative dirs to never clean (JSON list)
 
 ## Auth
 

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import logging
 from contextlib import asynccontextmanager
 from typing import Any, Dict
 
@@ -8,15 +10,40 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 
+from src.cleanup import cleanup_enabled_message, run_cleanup
 from src.config import settings
 from src.db import init_db
 from src.routers import account, auth_routes, files, health
+
+logger = logging.getLogger("uvicorn.error")
+
+
+async def _cleanup_loop() -> None:
+    logger.info(cleanup_enabled_message())
+    if int(settings.data_retention_days or 0) <= 0:
+        return
+    hours = int(settings.cleanup_interval_hours or 0)
+    if hours <= 0:
+        hours = 24
+    interval = hours * 3600
+    while True:
+        try:
+            await asyncio.to_thread(run_cleanup)
+        except Exception:
+            logger.exception("cleanup: run failed")
+        await asyncio.sleep(interval)
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     init_db()
+    task = asyncio.create_task(_cleanup_loop())
     yield
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
 
 
 app = FastAPI(

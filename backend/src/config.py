@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     supported_file_extension: List[str] = Field(default_factory=list)
     non_supported_file_extension: List[str] = Field(default_factory=list)
     database_url: str = ""
+    data_retention_days: int = 0
+    cleanup_interval_hours: int = 24
+    cleanup_exclude_dirs: List[str] = Field(default_factory=list)
 
     def resolved_database_url(self) -> str:
         if self.database_url:
