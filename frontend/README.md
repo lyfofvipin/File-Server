@@ -13,7 +13,15 @@ Open `http://localhost:8080`.
 
 ## Connect to any backend
 
-Edit [`config.js`](config.js):
+Highest priority: set `FS_API_URL` (optional `FS_API_LABEL`) on the frontend process. That URL becomes the default backend and is prepended to the server tabs; `config.js` entries still appear after it.
+
+```bash
+export FS_API_URL=http://host.example:5000
+export FS_API_LABEL=prod   # optional
+python serve.py
+```
+
+Otherwise edit [`config.js`](config.js):
 
 ```js
 window.FILE_SERVER = {

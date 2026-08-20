@@ -6,8 +6,12 @@
   const LEGACY_CRED = "fs_credentials";
   const LEGACY_ROLE = "fs_role";
 
+  function envUrl() {
+    return normalizeUrl((global.FILE_SERVER || {}).apiBaseUrlFromEnv || "");
+  }
+
   function defaultUrl() {
-    return ((global.FILE_SERVER || {}).apiBaseUrl || "http://127.0.0.1:5000").replace(/\/$/, "");
+    return envUrl() || ((global.FILE_SERVER || {}).apiBaseUrl || "http://127.0.0.1:5000").replace(/\/$/, "");
   }
 
   function configuredServers() {
@@ -26,6 +30,15 @@
         return { url: u, label: lbl };
       })
       .filter(Boolean);
+
+    const env = envUrl();
+    if (env) {
+      const envEntry = {
+        url: env,
+        label: String(cfg.apiBaseUrlFromEnvLabel || "").trim() || shortHost(env),
+      };
+      return [envEntry].concat(normalized.filter(function (s) { return s.url !== env; }));
+    }
 
     if (normalized.length) return normalized;
     const fallback = defaultUrl();
@@ -72,25 +85,42 @@
       .filter(Boolean);
 
     const cfg = configuredServers();
+    const byUrl = {};
+    list.forEach(function (s) { byUrl[s.url] = s; });
+    const merged = [];
+    const seen = {};
     cfg.forEach(function (c) {
-      const existing = list.find(function (s) { return s.url === c.url; });
+      const existing = byUrl[c.url];
       if (existing) {
         // Keep config label in sync unless user manually renamed this host in local storage.
         if (!existing.label || existing.label === shortHost(existing.url)) {
           existing.label = c.label || shortHost(existing.url);
         }
+        merged.push(existing);
       } else {
-        list.push({ id: uid(), label: c.label || shortHost(c.url), url: c.url });
+        merged.push({ id: uid(), label: c.label || shortHost(c.url), url: c.url });
       }
+      seen[c.url] = true;
     });
+    list.forEach(function (s) {
+      if (!seen[s.url]) merged.push(s);
+    });
+    list = merged;
 
     if (!list.length) {
       const fallback = defaultUrl();
       list = [{ id: uid(), label: shortHost(fallback), url: fallback }];
     }
 
-    const active = getActiveServerId();
-    if (!active || !list.some(function (s) { return s.id === active; })) {
+    const q = queryServerId();
+    const env = envUrl();
+    const stored = localStorage.getItem(ACTIVE_KEY) || "";
+    if (q && list.some(function (s) { return s.id === q; })) {
+      if (stored !== q) setActiveServerId(q);
+    } else if (env) {
+      const envSrv = list.find(function (s) { return s.url === env; });
+      if (envSrv && stored !== envSrv.id) setActiveServerId(envSrv.id);
+    } else if (!stored || !list.some(function (s) { return s.id === stored; })) {
       setActiveServerId(list[0].id);
     }
 
