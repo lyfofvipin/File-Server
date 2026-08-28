@@ -21,7 +21,7 @@ Open:
 
 Edit [`src/config.py`](src/config.py) (`Settings`) or set env vars with prefix `FS_` (e.g. `FS_PORT=5000`):
 
-- `result_base_dir_path` — filesystem root for files
+- `result_base_dir_path` — filesystem root for files (default `/home/dir_to_share`; override with `FS_RESULT_BASE_DIR_PATH`)
 - `port` — API port
 - `cors_origins` — browser origins allowed
 - `allow_registrations` / `allow_delete` / `enable_api_keys`

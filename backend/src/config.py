@@ -15,9 +15,9 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    result_base_dir_path: str = Field(
-        default_factory=lambda: os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    )
+    # Dedicated share dir only — never default to $HOME or the git checkout.
+    # Retention cleanup deletes old files under this path.
+    result_base_dir_path: str = "/home/dir_to_share"
     port: int = 5000
     secret_key: str = "put_your_high_secured_secret_here" #not a real secret
     cors_origins: List[str] = Field(default_factory=lambda: ["*"])

@@ -1,11 +1,13 @@
 # File-Server CLI container
 
-Runs [`file_server`](../../file_server) in a small image with `click` and `requests` pre-installed. No local `pip install` on the host.
+Runs [`file_server`](../file_server) in a small image with `click` and `requests` pre-installed. No local `pip install` on the host.
 
 ## Build
 
+Build from the **repo root** so `COPY file_server` can see the CLI script (Docker cannot `COPY ../...` outside the build context):
+
 ```bash
-podman build -f Dockerfile -t file-server-cli .
+podman build -f use_cli/Dockerfile -t file-server-cli .
 ```
 
 Image name defaults to `file-server-cli`.

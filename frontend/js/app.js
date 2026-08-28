@@ -1,5 +1,6 @@
 (function () {
   const THEME_KEY = "fs_theme";
+  const AUTO_REFRESH_KEY = "fs_auto_refresh";
 
   function getTheme() {
     try {
@@ -8,6 +9,21 @@
     } catch (e) {
       return "dark";
     }
+  }
+
+  function getAutoRefresh() {
+    try {
+      return localStorage.getItem(AUTO_REFRESH_KEY) !== "off";
+    } catch (e) {
+      return true;
+    }
+  }
+
+  function setAutoRefresh(on) {
+    try {
+      localStorage.setItem(AUTO_REFRESH_KEY, on ? "on" : "off");
+    } catch (e) {}
+    return !!on;
   }
 
   function applyTheme(theme) {
@@ -46,7 +62,38 @@
     el.className = "alert" + (type ? " alert--" + type : "");
   }
   function pathFromQuery() {
-    return (new URLSearchParams(location.search).get("path") || "").replace(/^\/+|\/+$/g, "");
+    return parseBrowseLocation().path;
+  }
+
+  function parseBrowseLocation() {
+    const params = new URLSearchParams(location.search);
+    let raw = params.get("path") || "";
+    if (!raw && !isAppPagePath(location.pathname)) {
+      raw = location.pathname.replace(/^\//, "").replace(/\/$/, "");
+    }
+    raw = raw.replace(/^\/+|\/+$/g, "");
+    const fileParam = (params.get("file") || "").replace(/^\/+/, "");
+    if (fileParam) {
+      return { path: raw, file: fileParam };
+    }
+    const parts = raw.split("/").filter(Boolean);
+    if (!parts.length) return { path: "", file: "" };
+    const last = parts[parts.length - 1];
+    if (last.indexOf(".") > 0 && !last.startsWith(".")) {
+      return { path: parts.slice(0, -1).join("/"), file: last };
+    }
+    return { path: raw, file: "" };
+  }
+
+  function isAppPagePath(pathname) {
+    const p = (pathname || "/").replace(/^\/+|\/+$/g, "");
+    if (!p) return true;
+    const first = p.split("/")[0];
+    const pages = {
+      "": 1, index: 1, about: 1, upload: 1, login: 1,
+      register: 1, account: 1, replace: 1, delete: 1,
+    };
+    return !!pages[p] || !!pages[first];
   }
   function joinPath(base, name) {
     return [base, name].filter(Boolean).join("/");
@@ -1043,7 +1090,9 @@
   async function initBrowse() {
     if (!FSApi.requireAuth()) return;
     const shell = await injectShell("browse");
-    const path = pathFromQuery();
+    const browseLoc = parseBrowseLocation();
+    const path = browseLoc.path;
+    const deepFile = browseLoc.file;
     if (shell) shell.setPath(path);
     if (shell) shell.focusPrompt();
     const page = document.getElementById("page-body");
@@ -1072,12 +1121,18 @@
     }
 
     const toolbar = $(".toolbar", page);
-    if (toolbar && canWrite) {
+    if (toolbar) {
+      const on = getAutoRefresh();
       toolbar.innerHTML =
-        '<a class="btn" id="upload-here" href="' +
-        hrefWithServer("upload.html" + (path ? "?path=" + encodeURIComponent(path) : "")) +
-        '">upload here</a>' +
-        '<button type="button" class="btn btn--ghost" id="mkdir-btn" title="Create folder">mkdir</button>';
+        (canWrite
+          ? '<a class="btn" id="upload-here" href="' +
+            hrefWithServer("upload.html" + (path ? "?path=" + encodeURIComponent(path) : "")) +
+            '">upload here</a>' +
+            '<button type="button" class="btn btn--ghost" id="mkdir-btn" title="Create folder">mkdir</button>'
+          : "") +
+        '<button type="button" class="btn btn--ghost" id="auto-refresh-btn" title="Poll this directory every 10s">' +
+        (on ? "auto-refresh: on" : "auto-refresh: off") +
+        "</button>";
       const mkdirBtn = $("#mkdir-btn", page);
       if (mkdirBtn) {
         mkdirBtn.onclick = async function () {
@@ -1091,8 +1146,6 @@
           }
         };
       }
-    } else if (toolbar) {
-      toolbar.innerHTML = "";
     }
 
     function wireRename(btn, fullPath, currentName) {
@@ -1373,17 +1426,37 @@
 
     restoreBrowseAlert();
     await refreshEntries("initial");
+    if (deepFile) {
+      FSApi.download(path, deepFile).catch(function (err) {
+        showBrowseAlert(err.message, "danger");
+      });
+    }
 
     let refreshTimer = null;
+    function stopAutoRefreshTimer() {
+      if (refreshTimer) {
+        clearInterval(refreshTimer);
+        refreshTimer = null;
+      }
+    }
     function startAutoRefresh() {
-      if (refreshTimer) clearInterval(refreshTimer);
+      stopAutoRefreshTimer();
+      if (!getAutoRefresh()) return;
       refreshTimer = setInterval(function () {
         if (document.hidden) return;
         const sid = FSApi.getActiveServerId();
         const st = getServerState(sid);
         if (st.pausedUntilMs && Date.now() < st.pausedUntilMs) return;
         refreshEntries("poll");
-      }, 3000);
+      }, 10000);
+    }
+    const autoRefreshBtn = $("#auto-refresh-btn", page);
+    if (autoRefreshBtn) {
+      autoRefreshBtn.onclick = function () {
+        const on = setAutoRefresh(!getAutoRefresh());
+        autoRefreshBtn.textContent = on ? "auto-refresh: on" : "auto-refresh: off";
+        startAutoRefresh();
+      };
     }
     startAutoRefresh();
 

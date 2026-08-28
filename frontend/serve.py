@@ -15,6 +15,32 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 
 STATIC_PREFIXES = ("/js/", "/css/", "/assets/")
 STATIC_EXACT = {"/config.js", "/favicon.ico", "/robots.txt"}
+APP_PAGES = {
+    "",
+    "index",
+    "about",
+    "upload",
+    "login",
+    "register",
+    "account",
+    "replace",
+    "delete",
+}
+
+
+def _static_file_exists(rel_path: str) -> bool:
+    abs_candidate = os.path.normpath(os.path.join(ROOT, rel_path.lstrip("/")))
+    return abs_candidate.startswith(ROOT) and os.path.isfile(abs_candidate)
+
+
+def _is_app_page(path: str) -> bool:
+    p = (path or "/").strip("/")
+    if not p:
+        return True
+    if p in APP_PAGES:
+        return True
+    first = p.split("/", 1)[0]
+    return first in APP_PAGES
 
 
 def env_api_url():
@@ -48,20 +74,25 @@ class Handler(SimpleHTTPRequestHandler):
             path = path.rstrip("/")
 
         base = os.path.basename(path)
-        # Real static file with extension → leave as-is
+        # Real static asset in the frontend tree (e.g. css/main.css)
         if "." in base:
-            self.path = path + query
+            if _static_file_exists(path):
+                self.path = path + query
+                return
+            # Deep link to a shared file path — serve the browse SPA shell.
+            self.path = "/index.html" + query
             return
 
-        candidate = path + ".html"
-        abs_candidate = os.path.normpath(os.path.join(ROOT, candidate.lstrip("/")))
-        # Stay inside ROOT
-        if abs_candidate.startswith(ROOT) and os.path.isfile(abs_candidate):
-            self.path = candidate + query
-            return
+        if _is_app_page(path):
+            candidate = path + ".html"
+            abs_candidate = os.path.normpath(os.path.join(ROOT, candidate.lstrip("/")))
+            if abs_candidate.startswith(ROOT) and os.path.isfile(abs_candidate):
+                self.path = candidate + query
+                return
 
-        # Fall through: let the stock handler 404
-        self.path = path + query
+        # Browse deep link (directory path in the URL bar)
+        self.path = "/index.html" + query
+        return
 
     def _serve_config_js(self, include_body):
         path = os.path.join(ROOT, "config.js")

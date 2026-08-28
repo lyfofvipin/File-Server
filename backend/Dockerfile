@@ -4,6 +4,7 @@ MAINTAINER Kumar Vipin Yadav "kumarvipinyadav369@gmail.com"
 RUN yum install -y python3-pip git
 
 COPY . backend
+
 RUN python3 -m pip install -r backend/requirements.txt && \
     mkdir -p /home/dir_to_share/ && \
     chmod 777 /home/dir_to_share/

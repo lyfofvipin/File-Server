@@ -5,7 +5,7 @@ RUN dnf install -y python3-pip && dnf clean all
 
 WORKDIR /opt/file-server-cli
 
-COPY ../file_server ./
+COPY file_server .
 
 RUN python3 -m pip install --no-cache-dir click requests && \
     chmod +x file_server

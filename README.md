@@ -114,7 +114,7 @@ Settings live in [`backend/src/config.py`](backend/src/config.py) (`Settings` cl
 
 | Setting | Env var | Description |
 |---------|---------|-------------|
-| `result_base_dir_path` | `FS_RESULT_BASE_DIR_PATH` | Filesystem root for browse/upload/download |
+| `result_base_dir_path` | `FS_RESULT_BASE_DIR_PATH` | Filesystem root for browse/upload/download (default `/home/dir_to_share`) |
 | `port` | `FS_PORT` | API listen port (default `5000`) |
 | `allow_registrations` | `FS_ALLOW_REGISTRATIONS` | Allow `POST /api/register` and UI register page |
 | `allow_delete` | `FS_ALLOW_DELETE` | Allow delete API and UI delete actions |

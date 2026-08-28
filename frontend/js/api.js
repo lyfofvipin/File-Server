@@ -301,6 +301,197 @@
     return { Authorization: "Bearer " + s.token };
   }
 
+  function formatBytes(n) {
+    if (n == null || isNaN(n)) return "";
+    const units = ["B", "KB", "MB", "GB", "TB"];
+    let i = 0;
+    let v = Number(n);
+    while (v >= 1024 && i < units.length - 1) {
+      v /= 1024;
+      i += 1;
+    }
+    return (i ? v.toFixed(1) : String(Math.round(v))) + " " + units[i];
+  }
+
+  function ensureTransferProgressUi() {
+    let root = document.getElementById("fs-transfer-progress");
+    if (root) return root;
+    root = document.createElement("div");
+    root.id = "fs-transfer-progress";
+    root.className = "download-progress";
+    root.hidden = true;
+    root.innerHTML =
+      '<div class="download-progress__card">' +
+      '<div class="download-progress__label">Transferring…</div>' +
+      '<div class="download-progress__track">' +
+      '<div class="download-progress__bar"></div>' +
+      "</div>" +
+      '<div class="download-progress__meta">Starting…</div>' +
+      "</div>";
+    document.body.appendChild(root);
+    return root;
+  }
+
+  function showTransferProgress(label) {
+    const root = ensureTransferProgressUi();
+    const labelEl = root.querySelector(".download-progress__label");
+    const bar = root.querySelector(".download-progress__bar");
+    const meta = root.querySelector(".download-progress__meta");
+    if (labelEl) labelEl.textContent = label;
+    if (bar) bar.style.width = "0%";
+    if (meta) meta.textContent = "Starting…";
+    root.classList.remove("download-progress--indeterminate");
+    root.hidden = false;
+  }
+
+  function updateTransferProgress(loaded, total, verb) {
+    const root = document.getElementById("fs-transfer-progress");
+    if (!root || root.hidden) return;
+    const bar = root.querySelector(".download-progress__bar");
+    const meta = root.querySelector(".download-progress__meta");
+    const action = verb === "sent" ? "sent" : "received";
+    if (total && total > 0) {
+      const pct = Math.min(100, Math.round((loaded / total) * 100));
+      root.classList.remove("download-progress--indeterminate");
+      if (bar) bar.style.width = pct + "%";
+      if (meta) {
+        meta.textContent = pct + "% · " + formatBytes(loaded) + " / " + formatBytes(total);
+      }
+    } else {
+      root.classList.add("download-progress--indeterminate");
+      if (bar) bar.style.width = "100%";
+      if (meta) meta.textContent = formatBytes(loaded) + " " + action;
+    }
+  }
+
+  function hideTransferProgress() {
+    const root = document.getElementById("fs-transfer-progress");
+    if (!root) return;
+    root.hidden = true;
+    root.classList.remove("download-progress--indeterminate");
+    const bar = root.querySelector(".download-progress__bar");
+    if (bar) bar.style.width = "0%";
+  }
+
+  function uploadProgressLabel(files) {
+    const list = Array.from(files || []);
+    if (!list.length) return "files";
+    if (list.length === 1) return list[0].name;
+    return list.length + " files";
+  }
+
+  function filesTotalSize(files) {
+    let total = 0;
+    Array.from(files || []).forEach(function (f) {
+      total += f.size || 0;
+    });
+    return total;
+  }
+
+  function xhrJsonError(xhr, reject) {
+    const ct = xhr.getResponseHeader("content-type") || "";
+    let body = xhr.responseText;
+    if (ct.indexOf("application/json") >= 0) {
+      try {
+        body = JSON.parse(xhr.responseText);
+      } catch (e) {}
+    }
+    const message =
+      (body && body.message) ||
+      (typeof body === "string" && body.trim()) ||
+      ("Request failed (" + xhr.status + ")");
+    const err = new Error(message);
+    err.status = xhr.status;
+    err.body = body;
+    reject(err);
+  }
+
+  function sendFormWithProgress(path, formData, onProgress) {
+    return new Promise(function (resolve, reject) {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", apiBase() + path);
+      const headers = authHeader();
+      Object.keys(headers).forEach(function (k) {
+        xhr.setRequestHeader(k, headers[k]);
+      });
+      xhr.upload.onprogress = function (e) {
+        if (typeof onProgress === "function") {
+          onProgress(e.loaded, e.lengthComputable ? e.total : null);
+        }
+      };
+      xhr.onload = function () {
+        const ct = xhr.getResponseHeader("content-type") || "";
+        let body = xhr.responseText;
+        if (ct.indexOf("application/json") >= 0) {
+          try {
+            body = JSON.parse(xhr.responseText);
+          } catch (e) {}
+        }
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(body);
+          return;
+        }
+        xhrJsonError(xhr, reject);
+      };
+      xhr.onerror = function () {
+        reject(new Error("Network error while uploading"));
+      };
+      xhr.onabort = function () {
+        reject(new Error("Upload cancelled"));
+      };
+      xhr.send(formData);
+    });
+  }
+
+  function fetchBlobWithProgress(path, onProgress) {
+    return new Promise(function (resolve, reject) {
+      const xhr = new XMLHttpRequest();
+      xhr.open("GET", apiBase() + path);
+      xhr.responseType = "blob";
+      const headers = authHeader();
+      Object.keys(headers).forEach(function (k) {
+        xhr.setRequestHeader(k, headers[k]);
+      });
+      xhr.onprogress = function (e) {
+        if (typeof onProgress === "function") {
+          onProgress(e.loaded, e.lengthComputable ? e.total : null);
+        }
+      };
+      xhr.onload = function () {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(xhr.response);
+          return;
+        }
+        const blob = xhr.response;
+        if (blob && blob.type && blob.type.indexOf("json") >= 0) {
+          blob.text().then(function (text) {
+            let message = "Request failed (" + xhr.status + ")";
+            try {
+              const body = JSON.parse(text);
+              if (body && body.message) message = body.message;
+            } catch (e) {}
+            const err = new Error(message);
+            err.status = xhr.status;
+            reject(err);
+          }).catch(function () {
+            reject(new Error("Request failed (" + xhr.status + ")"));
+          });
+          return;
+        }
+        const err = new Error("Request failed (" + xhr.status + ")");
+        err.status = xhr.status;
+        reject(err);
+      };
+      xhr.onerror = function () {
+        reject(new Error("Network error while downloading"));
+      };
+      xhr.onabort = function () {
+        reject(new Error("Download cancelled"));
+      };
+      xhr.send();
+    });
+  }
+
   async function request(path, options) {
     const opts = options || {};
     const headers = Object.assign({}, opts.headers || {});
@@ -384,19 +575,49 @@
     const q = new URLSearchParams();
     if (path) q.set("path", path);
     q.set("file", file);
-    const blob = await request("/api/download?" + q.toString(), { expectBlob: true });
-    const a = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    a.href = url; a.download = file; document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
+    const dlPath = "/api/download?" + q.toString();
+    showTransferProgress("Downloading " + file);
+    try {
+      const blob = await fetchBlobWithProgress(dlPath, function (loaded, total) {
+        updateTransferProgress(loaded, total, "received");
+      });
+      updateTransferProgress(blob.size || 0, blob.size || 0, "received");
+      const a = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      a.href = url;
+      a.download = file;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      await new Promise(function (resolve) { setTimeout(resolve, 300); });
+    } finally {
+      hideTransferProgress();
+    }
   }
   async function upload(path, files, comment) {
     const q = new URLSearchParams();
     if (path) q.set("path", path);
     if (comment) q.set("comment", comment);
     const form = new FormData();
-    Array.from(files).forEach(function (f) { form.append("file", f); });
-    return request("/api/upload?" + q.toString(), { method: "POST", body: form });
+    const list = Array.from(files);
+    list.forEach(function (f) { form.append("file", f); });
+    const totalBytes = filesTotalSize(list);
+    showTransferProgress("Uploading " + uploadProgressLabel(list));
+    try {
+      const result = await sendFormWithProgress(
+        "/api/upload?" + q.toString(),
+        form,
+        function (loaded, total) {
+          updateTransferProgress(loaded, total || totalBytes || null, "sent");
+        }
+      );
+      if (totalBytes) updateTransferProgress(totalBytes, totalBytes, "sent");
+      await new Promise(function (resolve) { setTimeout(resolve, 300); });
+      return result;
+    } finally {
+      hideTransferProgress();
+    }
   }
   async function replace(fileToReplace, file, fileNumber, comment) {
     const q = new URLSearchParams();
@@ -405,7 +626,22 @@
     if (comment) q.set("comment", comment);
     const form = new FormData();
     form.append("file", file);
-    return request("/api/replace?" + q.toString(), { method: "POST", body: form });
+    const totalBytes = file ? file.size || 0 : 0;
+    showTransferProgress("Uploading " + (file ? file.name : "file"));
+    try {
+      const result = await sendFormWithProgress(
+        "/api/replace?" + q.toString(),
+        form,
+        function (loaded, total) {
+          updateTransferProgress(loaded, total || totalBytes || null, "sent");
+        }
+      );
+      if (totalBytes) updateTransferProgress(totalBytes, totalBytes, "sent");
+      await new Promise(function (resolve) { setTimeout(resolve, 300); });
+      return result;
+    } finally {
+      hideTransferProgress();
+    }
   }
   async function rename(path, newName) {
     return request("/api/rename", { method: "POST", jsonBody: { path: path, new_name: newName } });
